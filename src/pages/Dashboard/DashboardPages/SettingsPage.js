@@ -43,8 +43,11 @@ export default class StaffPage extends Component {
 
     
     return (
-      <ContentWrapper>
-      <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
+      <div className="dashboard-page">
+        <Grid layout="fluid">
+          <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
+        </Grid>
+
         <Grid layout="fluid">
           <GridColumn medium={12} className="folder-grid">
             <Link to="/adminpanel/settings/item-category-management">
@@ -58,9 +61,8 @@ export default class StaffPage extends Component {
               </div>
             </Link>
           </GridColumn>
-
         </Grid>
-      </ContentWrapper>
+      </div>
     );
   }
 }

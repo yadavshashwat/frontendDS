@@ -65,9 +65,9 @@ class App extends Component {
 
   render() {
     return (
-      <div>
+      <div className="sidebar-app">
         <Page
-          navigationWidth={this.context.navOpenState.width}
+          // navigationWidth={this.context.navOpenState.width}
           navigation={<DashboardNavigation/>}
         >
           {this.props.children}

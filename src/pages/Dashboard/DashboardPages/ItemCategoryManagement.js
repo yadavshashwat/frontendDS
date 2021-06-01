@@ -503,9 +503,11 @@ class ItemCategory extends Component {
       orderByIcon = <SortIconContainer><ArrowDownCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowDownCircleIcon></SortIconContainer>
     }
     return (
-      <ContentWrapper>
-      <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
-        <Grid spacing="compact">
+      <div className="dashboard-page">
+        <Grid layout="fluid">
+                <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
+        </Grid>
+        <Grid layout="fluid">
           <GridColumn medium={10}></GridColumn>
           <GridColumn medium={2}>
           <Button onClick={this.handleAddModalOpen} appearance="warning">
@@ -513,7 +515,7 @@ class ItemCategory extends Component {
           </Button>
           </GridColumn>
         </Grid>
-        <Grid spacing="compact">
+        <Grid layout="fluid">
           <GridColumn medium={2}>
             <div className="field-div">
               {this.state.searchIcon === true && (
@@ -564,10 +566,10 @@ class ItemCategory extends Component {
             {orderByIcon}
           </GridColumn>
         </Grid>
-        <Grid spacing="compact">
+        <Grid layout="fluid">
           <DataWrapper>
-          <Grid>
-                <GridColumn medium={10}>
+          {/* <Grid>
+                <GridColumn medium={12}>
                 {(this.state.loaded && this.state.numPages > 1) && (
                 <ReactPaginate
                   previousLabel={'<'}
@@ -599,7 +601,7 @@ class ItemCategory extends Component {
                 </div>
                 </GridColumn>
               </Grid>
-              <br></br>
+              <br></br> */}
             <DynamicTable
               isLoading={!this.state.loaded}
               head={head}
@@ -717,7 +719,7 @@ class ItemCategory extends Component {
 
           )}
         </ModalTransition>
-      </ContentWrapper>
+      </div>
 
     );
   }

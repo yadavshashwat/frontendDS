@@ -1,7 +1,7 @@
 {
-  "name": "careerannabackend",
+  "name": "decorshop backedn",
   "version": "1.0.0",
-  "description": "CareerAnna Backend System",
+  "description": "The DecorShop Backend System",
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
@@ -32,6 +32,7 @@
     "@atlaskit/navigation": "^33.1.7",
     "@atlaskit/page": "^8.0.4",
     "@atlaskit/select": "^6.1.19",
+    "@atlaskit/side-navigation": "^1.0.0",
     "@atlaskit/tabs": "^9.0.0",
     "@atlaskit/tag": "^6.1.4",
     "@atlaskit/textarea": "^0.2.3",
