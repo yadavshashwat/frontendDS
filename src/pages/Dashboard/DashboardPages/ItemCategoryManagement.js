@@ -202,7 +202,7 @@ class ItemCategory extends Component {
     const dataId = event.currentTarget.dataset.id;
     this.setState({
       isConfModalOpen:true,
-      activeDataId: parseInt(dataId)
+      activeDataId: parseInt(dataId,10)
     })
   }
 
@@ -245,7 +245,7 @@ class ItemCategory extends Component {
   
   handleEditModalOpen = event => {
     const data_id = event.currentTarget.dataset.id
-    this.setState({ isNew: false, activeDataId: parseInt(data_id) });
+    this.setState({ isNew: false, activeDataId: parseInt(data_id,10) });
 
     api(url + '/' + data_id,'get', {}).then(response => {
       const { data, success } = response;
@@ -466,16 +466,13 @@ class ItemCategory extends Component {
             triggerType="button"
             shouldFlip={false}
             position="bottom"
-
           >
             <DropdownItemGroup key={row.id}>
               <DropdownItem data-id={row.id} onClick={this.handleEditModalOpen.bind(this)}>Edit</DropdownItem>
               <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Delete</DropdownItem>
             </DropdownItemGroup>
           </DropdownMenu>
-
         },
-
       ]
     }
     ));
@@ -485,7 +482,7 @@ class ItemCategory extends Component {
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
         var textPath = changeCase.titleCase(Path[index])
-        var link =  (Path.slice(0,index + 1).join("/")) + "/"
+        var link =  (Path.slice(0,index + 1).join("/"))
         // console.log(index,textPath, link)
         try{
           return (<BreadcrumbsItem key={index} iconBefore={pathIcon[Path[index]]} href={link} text={textPath} />);
@@ -505,7 +502,6 @@ class ItemCategory extends Component {
     } else {
       orderByIcon = <SortIconContainer><ArrowDownCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowDownCircleIcon></SortIconContainer>
     }
-
     return (
       <ContentWrapper>
       <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>

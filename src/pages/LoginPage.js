@@ -3,12 +3,12 @@ import React, { Component } from 'react';
 import '@atlaskit/css-reset';
 import "../css/dashboard.css"
 
-import { browserHistory } from 'react-router';
+// import { browserHistory } from 'react-router';
 //do something...
 import Page from '@atlaskit/page';
 
 // Backend Connection
-import { apiGet } from "../helpers/api";
+// import { api } from "../helpers/api";
 // Redux 
 import { connect } from "react-redux";
 
@@ -22,11 +22,11 @@ import { Grid, GridColumn } from '@atlaskit/page';
 
 import TextField from '@atlaskit/textfield';
 import Button from '@atlaskit/button';
-import Cookies from 'universal-cookie';
+// import Cookies from 'universal-cookie';
 // import { Router, Route, Redirect, browserHistory  } from 'react-router';
 
-const url="/user/login_user/";
-const url_reset="/user/send_password_reset_req/";
+// const url="/user/login_user/";
+// const url_reset="/user/send_password_reset_req/";
 
 class LoginPage extends Component {
   static contextTypes = {

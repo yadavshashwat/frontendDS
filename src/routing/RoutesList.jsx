@@ -13,7 +13,6 @@ import Settings from "../pages/Dashboard/DashboardPages/SettingsPage";
 import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCategoryManagement"
 
 // icons import
-import DashboardIcon from '@atlaskit/icon/glyph/dashboard';
 import GearIcon from '@atlaskit/icon/glyph/settings';
 // import TrayIcon from '@atlaskit/icon/glyph/tray';
 // import SignOutIcon from '@atlaskit/icon/glyph/sign-out';

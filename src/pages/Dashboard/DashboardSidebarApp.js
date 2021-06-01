@@ -4,9 +4,9 @@ import Page from '@atlaskit/page';
 import '@atlaskit/css-reset';
 
 import DashboardNavigation from '../../components/DashboardNavigation';
-import Cookies from 'universal-cookie';
-import { browserHistory } from 'react-router';
-import { apiGet } from "../../helpers/api";
+// import Cookies from 'universal-cookie';
+// import { browserHistory } from 'react-router';
+// import { api } from "../../helpers/api";
 import authorization from "../../redux/actions/authorization";
 
 // Redux 
@@ -15,7 +15,7 @@ import { connect } from "react-redux";
 // Redux dispatch
 import { bindActionCreators } from "redux";
 
-const url="/user/login_user/";
+// const url="/user/login_user/";
 
 
 class App extends Component {

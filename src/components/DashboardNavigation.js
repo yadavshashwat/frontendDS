@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import Nav, {
   AkNavigationItem,
 } from '@atlaskit/navigation';
-import AtlassianIcon from '@atlaskit/icon/glyph/atlassian';
+// import AtlassianIcon from '@atlaskit/icon/glyph/atlassian';
 
 
 

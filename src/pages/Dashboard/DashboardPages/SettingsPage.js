@@ -27,7 +27,7 @@ export default class StaffPage extends Component {
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
         var textPath = changeCase.titleCase(Path[index])
-        var link =  (Path.slice(0,index + 1).join("/")) + "/"
+        var link =  (Path.slice(0,index + 1).join("/"))
         try{
           return (<BreadcrumbsItem key={index} iconBefore={pathIcon[Path[index]]} href={link} text={textPath} />);
         }

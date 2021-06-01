@@ -2,10 +2,10 @@ import axios from 'axios';
 
 // var Production = false;
 let baseurl = null;
-let imageUploadUrl = null;
+// let imageUploadUrl = null;
 
 
-if (window.location.hostname == "localhost"){
+if (window.location.hostname === "localhost"){
     baseurl = "http://localhost:8000/api/";
 }else{
     baseurl = "tbd";
@@ -17,13 +17,11 @@ if (window.location.hostname == "localhost"){
 
 
 export function api(url, method, filters) {
-    var querystring = ""
     if (method === 'get'){
         var queryString = Object.keys(filters).map(key => key + '=' + filters[key]).join('&');
         url = url + '?' + queryString
         filters = {}
     }
-    
     return axios({
         method: method,
         baseURL: {
