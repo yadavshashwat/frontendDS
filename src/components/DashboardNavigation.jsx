@@ -1,15 +1,9 @@
 /** @jsx jsx */
-import PropTypes from 'prop-types';
-import React from 'react';
 import { Link } from 'react-router';
 import Routes from "../routing/RoutesList"
 
 
 import { jsx } from '@emotion/core';
-
-import FilterIcon from '@atlaskit/icon/glyph/filter';
-import WorkIcon from '@atlaskit/icon/glyph/folder';
-import LightbulbIcon from '@atlaskit/icon/glyph/lightbulb';
 
 
 import {
@@ -17,14 +11,11 @@ import {
   NavigationFooter,
   NavigationHeader,
   NestableNavigationContent,
-  NestingItem,
+  // NestingItem,
   Section,
   SideNavigation,
 } from '@atlaskit/side-navigation';
 
-// import AppFrame from './common/app-frame';
-// import SampleFooter from './common/sample-footer';
-// import SampleHeader from './common/sample-header';
 
 const url = "http://www.thedecorshop.in"
 let companyLogo = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/logo/thedecorshop-logo-transparent.png"

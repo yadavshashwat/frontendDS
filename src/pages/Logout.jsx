@@ -17,28 +17,28 @@ import { bindActionCreators } from "redux";
 import flag from "../redux/actions/flag";
 import authorization from "../redux/actions/authorization";
 
-const url="/user/logout_user/";
+const url="/v1/user/logout";
 
 class Logout extends Component {
   
   componentDidMount(){
     const cookies = new Cookies();
-    const payload = {data_id:this.props.userId};
+    const payload = {user_id:this.props.userId};
     
-    api(url, payload)
+    api(url,'post-formdata' ,payload)
     .then(response => {
-      const { result, message, status} = response;
+      const { message, success} = response;
       this.props.actions.addFlag({
         message: message,
-        appearance: (status ? "normal" :  "warning")
+        appearance: (success ? "warning" :  "danger")
       });    
 
       // console.log(result)        
-      if (status) {
+      if (success) {
           this.props.actions.logoutUser({});
           cookies.set('auth_token', '', { path: '/' });
           cookies.set('user_id', '', { path: '/' });
-          browserHistory.push("/testengine/adminpanel/");
+          browserHistory.push("/adminpanel");
       }
 
   });

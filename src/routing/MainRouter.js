@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import { Router, Route, browserHistory } from 'react-router';
-import DashboadSidebarApp from '../pages/Dashboard/DashboardSidebarApp';
+import DashboadSidebarApp from '../pages/Dashboard/DashboardSidebarApp.jsx';
 import Routes from "./RoutesList"
 import { Provider } from 'react-redux';
 import store from '../store';

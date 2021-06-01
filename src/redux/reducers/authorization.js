@@ -9,8 +9,6 @@ const defaultState = {
     userEmail:'',
     userAuthToken:'',
     userIsStaff:false,
-    userRole:'user',
-    userCourses:[],
     loggedIn:false,
     userId:''
 }
@@ -24,8 +22,8 @@ export default handleActions({
             first_name,
             id,
             is_staff,
-            last_name,
-            user_role} = payload
+            last_name
+            } = payload
  
         return {
             ...state,
@@ -34,14 +32,12 @@ export default handleActions({
             userEmail:email,
             userAuthToken:auth_token,
             userIsStaff:is_staff,
-            userRole:user_role,
-            userCourses:[],
             loggedIn:auth,
             userId:id
         }
     },
 
-    [actionTypes.LOGOUT_USER](state, {}){
+    [actionTypes.LOGOUT_USER](state, {payload}){
         // debugger;
         return {
             ...state,
@@ -50,8 +46,6 @@ export default handleActions({
             userEmail:'',
             userAuthToken:'',
             userIsStaff:false,
-            userRole:'user',
-            userCourses:[],
             loggedIn:false,
             userId:''
         }

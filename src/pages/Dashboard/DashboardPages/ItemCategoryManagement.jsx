@@ -5,7 +5,7 @@ import React, { Component } from 'react';
 import "../../../css/dashboard.css"
 
 // Backend Connection
-import { api } from "../../../helpers/api";
+import { api } from "../../../helpers/api.jsx";
 // Redux 
 import { connect } from "react-redux";
 
@@ -35,7 +35,7 @@ import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
 
 // Components
-import ContentWrapper from '../../../components/ContentWrapper';
+// import ContentWrapper from '../../../components/ContentWrapper';
 
 // Other Packages
 import ReactPaginate from 'react-paginate';
@@ -454,11 +454,6 @@ class ItemCategory extends Component {
           key: row.id,
           content: row.description
         },
-        // {
-        //   key: row.id,
-        //   content: "text"
-        // },
-
         {
           key: row.id,
           content: <DropdownMenu

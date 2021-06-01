@@ -5,17 +5,18 @@
 // import QuestionBankSubFolderSelect from "../pages/QuestionBankSubFolderSelect";
 // import QuestionManagement from "../pages/QuestionManagement";
 // import QuestionBankManagement from "../pages/QuestionBankManagement";
-// import Logout from "../pages/Logout";
 // import ForgetPassword from "../pages/ForgetPassword";
 
-import LoginPage from "../pages/LoginPage";
-import Settings from "../pages/Dashboard/DashboardPages/SettingsPage";
-import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCategoryManagement"
+import LoginPage from "../pages/LoginPage.jsx";
+import Logout from "../pages/Logout.jsx";
+import Settings from "../pages/Dashboard/DashboardPages/SettingsPage.jsx";
+import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCategoryManagement.jsx"
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
+import SignOutIcon from '@atlaskit/icon/glyph/sign-out';
+
 // import TrayIcon from '@atlaskit/icon/glyph/tray';
-// import SignOutIcon from '@atlaskit/icon/glyph/sign-out';
 
 const basePath = ""
 const Routes = [
@@ -40,6 +41,15 @@ const Routes = [
     redirect:false,
     navbarDisplayName: "Settings",
     navbarIcon:GearIcon
+  },
+  {
+    path:  basePath +  "/adminpanel/logout",
+    component: Logout,
+    pageType:"dashboard",
+    viewLevel:1,
+    redirect:false,
+    navbarDisplayName: "Logout",
+    navbarIcon:SignOutIcon
   },
 
 

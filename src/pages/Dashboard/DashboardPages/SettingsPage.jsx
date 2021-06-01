@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 
 
 // Components
-import ContentWrapper from '../../../components/ContentWrapper';
+// import ContentWrapper from '../../../components/ContentWrapper';
 
 // Atlaskit Packages
 import { Grid, GridColumn } from '@atlaskit/page';

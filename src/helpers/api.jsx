@@ -17,11 +17,23 @@ if (window.location.hostname === "localhost"){
 
 
 export function api(url, method, filters) {
+
     if (method === 'get'){
         var queryString = Object.keys(filters).map(key => key + '=' + filters[key]).join('&');
         url = url + '?' + queryString
         filters = {}
     }
+
+    if (method === 'post-formdata'){
+        method = 'post'
+        var bodyFormData = new FormData();
+        for (const key in filters) {
+            let value = filters[key]
+            bodyFormData.set(key, value);
+        }
+        filters = bodyFormData
+    }
+    
     return axios({
         method: method,
         baseURL: {
