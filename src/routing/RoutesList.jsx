@@ -11,12 +11,13 @@ import LoginPage from "../pages/LoginPage.jsx";
 import Logout from "../pages/Logout.jsx";
 import Settings from "../pages/Dashboard/DashboardPages/SettingsPage.jsx";
 import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCategoryManagement.jsx"
+import Items from "../pages/Dashboard/DashboardPages/ItemManagement.jsx";
+import AddEditItems from "../pages/Dashboard/DashboardPages/AddEditItem";
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
 import SignOutIcon from '@atlaskit/icon/glyph/sign-out';
-
-// import TrayIcon from '@atlaskit/icon/glyph/tray';
+import TrayIcon from '@atlaskit/icon/glyph/tray';
 
 const basePath = ""
 const Routes = [
@@ -24,6 +25,22 @@ const Routes = [
     pageType:"login",
     path:  basePath +  "/adminpanel",
     component: LoginPage,
+  },
+  {
+    path:  basePath +  "/adminpanel/items/add-item",
+    component: AddEditItems,
+    pageType:"dashboard",
+    viewLevel:2,
+    navbarDisplayName: "Item Details",
+    navbarIcon:TrayIcon
+  },
+  {
+    path:  basePath +  "/adminpanel/items",
+    component: Items,
+    pageType:"dashboard",
+    viewLevel:1,
+    navbarDisplayName: "Item Details",
+    navbarIcon:TrayIcon
   },
   {
     path:  basePath +  "/adminpanel/settings",

@@ -47,7 +47,6 @@ export default class StaffPage extends Component {
         <Grid layout="fluid">
           <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
         </Grid>
-
         <Grid layout="fluid">
           <GridColumn medium={12} className="folder-grid">
             <Link to="/adminpanel/settings/item-category-management">
