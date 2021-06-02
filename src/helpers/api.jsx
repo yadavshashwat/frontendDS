@@ -49,17 +49,20 @@ export function api(url, method, filters) {
     }).then(response => response.data)
 }
 
-// export function imageHandlerApi(formData) {
-//     return axios({
-//         method: 'post',
-//         url: imageUploadUrl,
-//         data: formData,
-//         config: {
-//             headers: {
-//                 'Content-Type': 'multipart/form-data'
-//             }
-//         }
-//     }).then(response => {
-//         return response.data
-//     })
-// }
+export function imageHandlerApi(url,formData) {
+    return axios({
+        method: 'post',
+        baseURL: {
+            baseurl
+        }.baseurl,
+        url: url,
+        data: formData,
+        config: {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }
+    }).then(response => {
+        return response.data
+    })
+}

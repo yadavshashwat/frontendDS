@@ -20,6 +20,7 @@ import Button from '@atlaskit/button';
 // import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
 import { CreatableSelect } from '@atlaskit/select';
+import Lozenge from '@atlaskit/lozenge';
 import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
 import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
@@ -55,18 +56,25 @@ const MyTextLoader = () => (
     secondaryColor="#ecebeb"
     className="contentLoaderStyle"
   >
-    <rect x="0" y="15" rx="5" ry="5" width={400 * random} height="15" />
-    <rect x="0" y="75" rx="5" ry="5" width="350" height="15" />
+    <rect x="0" y="15" rx="5" ry="5" width={100 * random} height="15" />
     <rect x="0" y="45" rx="5" ry="5" width={200 * random} height="15" />
   </ContentLoader>
 );
 
+function titleCase(str) {
+  str = str.toLowerCase().split(' ');
+  for (var i = 0; i < str.length; i++) {
+    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1); 
+  }
+  return str.join(' ');
+}
 
 
 
 // api url path
-var url = "/v1/itemcats";
-
+var url = "/v1/items";
+// var noImagePath = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/other/nothing_image_new.png";
+var noImagePath = "";
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
   {'value':20,'label':'20 Items/Page'},
@@ -429,10 +437,14 @@ class ItemCategory extends Component {
                       <div className="item-div">
                         <div className="item-div-internal">
                           <div className="item-image-container">
-                            <img className="item-image" src={"https://thedecorshop.s3.ap-south-1.amazonaws.com/images/"+ (key+1) +".jpeg"}/>
+                            <img className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
                           </div>
                           <div className="item-name">
-                            Item Name Item Name Item Name Item Name Item Name 
+                            {changeCase.titleCase(row.name)} 
+                            <br></br>
+                            {row.category_details && (
+                              <div className="category-pill">{row.category_details ? titleCase(row.category_details.category + " - " + row.category_details.sub_category): ""}</div>
+                            )}
                           </div>
                         </div>  
                     </div>
@@ -443,15 +455,17 @@ class ItemCategory extends Component {
     } else {
       renderBodyElement = loaderArray.map((row, key) => {
         return (
-                <GridColumn key={key} medium={3} className="item-grid">
-                    <div className="item-div">
-                      <div className="item-image-container">
-                        <img src={""}/>
-                      </div>
-                      <div className="item-name">
-                        <MyTextLoader/>
-                      </div>
+                <GridColumn key={key} medium={2} className="item-grid">
+                      <div className="item-div">
+                        <div className="item-div-internal">
+                          <div className="item-image-container">
+                          </div>
+                          <div className="item-name">
+                            <MyTextLoader/>
+                          </div>
+                        </div>  
                     </div>
+
                 </GridColumn>
         );
       });
@@ -517,7 +531,7 @@ class ItemCategory extends Component {
               />
             </div>
           </GridColumn>
-          <GridColumn medium={3}>
+          <GridColumn medium={4}>
             <div className="field-div">
               <span className="field-label">Category</span>
               <CheckboxSelect
@@ -530,7 +544,7 @@ class ItemCategory extends Component {
               />
             </div>
           </GridColumn>
-          <GridColumn medium={4}>
+          <GridColumn medium={3}>
           </GridColumn>
           <GridColumn medium={2}>
             <div className="field-div">

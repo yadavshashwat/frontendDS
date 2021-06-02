@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone'
 import "../../../css/dashboard.css"
 
 // Backend Connection
-import { api } from "../../../helpers/api.jsx";
+import { api,imageHandlerApi } from "../../../helpers/api.jsx";
 // Redux 
 import { connect } from "react-redux";
 
@@ -44,7 +44,8 @@ function titleCase(str) {
 // api url path
 var url_items = "/v1/items";
 var url_category = "/v1/itemcats";
-
+var url_image_upload = "/v1/itemimageupload/";
+const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 
 
 
@@ -102,7 +103,7 @@ class AddEditItem extends Component {
   };
 
   handleFileDrop = acceptedFiles => {
-    var currentState = this.state.ImageList
+    const currentState = this.state.ImageList
     for(var i = 0; i < acceptedFiles.length ; i += 1) {
       var indexFile = currentState.findIndex(x => x.path === acceptedFiles[i].path);
       if(indexFile < 0 ){
@@ -112,7 +113,6 @@ class AddEditItem extends Component {
     this.setState({
       ImageList:currentState
     })
-    console.log(this.state.ImageList)
   }
 
   handleImageRemoveClick = event =>{
@@ -163,8 +163,11 @@ handleSaveContinueItems = () =>{
 }
 
   SaveItem = (type) => {
-    console.log('here')
+    // console.log('here')
     const submitCheck = this.checkError();
+    this.setState({
+      loaded:false
+    })
     if (submitCheck){
     const payloadSend = {
         name: this.state.itemNameValue,
@@ -173,18 +176,74 @@ handleSaveContinueItems = () =>{
         dimensions: this.state.ItemDimensionsValue,
         sell_price: this.state.ItemSellingPrice,
       }
-    console.log(payloadSend)
+    // console.log(payloadSend)
     api(url_items, 'post' ,payloadSend)
     .then(response => {
-      const { message, success } = response;
+      const { data, message, success } = response;
+      var updatedMessage = message
+      if (this.state.ImageList.length > 0){
+        updatedMessage = message + " Uploading Images"
+      }
       this.props.actions.addFlag({
-        message: message,
+        message: updatedMessage,
         appearance: (success ? "warning" :  "danger")
       });    
       if (success){
-          if(type==="save"){    
+ 
+        const formData = new FormData();
+        for(var i = 0; i < this.state.ImageList.length ; i += 1) {
+          formData.append("file", this.state.ImageList[i]);          
+        }
+        if (this.state.ImageList.length > 0){
+          imageHandlerApi(url_image_upload + data.id ,formData)
+          .then(response => {
+            const { message, success } = response;
+            this.props.actions.addFlag({
+              message: message,
+              appearance: (success ? "warning" :  "danger")
+            });   
+          if (success){
+            if(type==="save"){    
+              this.setState({
+                itemNameValue:"",     
+                ItemDescriptionValue:"",
+                ItemDimensionsValue:"",
+                ItemSellingPrice:"",
+                ItemSellingPriceValid:true,
+                categoryValue:"",
+                ImageList:[],
+                loaded:true              
+              });
+              console.log('here')
+  
+              
+            }else{
+              this.setState({
+                itemNameValue:"",     
+                ItemDescriptionValue:"",
+                ItemDimensionsValue:"",
+                ItemSellingPrice:"",
+                ItemSellingPriceValid:true,
+                ImageList:[],
+                loaded:true                            
+              });
+              console.log('here1')
+            } 
+          }
+          }).catch(error => console.log(error))
 
-            
+        }else{
+          if(type==="save"){    
+            this.setState({
+              itemNameValue:"",     
+              ItemDescriptionValue:"",
+              ItemDimensionsValue:"",
+              ItemSellingPrice:"",
+              ItemSellingPriceValid:true,
+              categoryValue:"",
+              ImageList:[],
+              loaded:true              
+            });            
           }else{
             this.setState({
               itemNameValue:"",     
@@ -192,9 +251,11 @@ handleSaveContinueItems = () =>{
               ItemDimensionsValue:"",
               ItemSellingPrice:"",
               ItemSellingPriceValid:true,
-              ImageList:[]              
+              ImageList:[],
+              loaded:true                            
             });
           } 
+        }
       }
     })
     .catch(error => console.log(error))
@@ -215,7 +276,6 @@ handleSaveContinueItems = () =>{
             var label = titleCase(updatedData[i]['category'] + ' - ' +updatedData[i]['sub_category'])
             categoryOptions.push({'value':value,'label':label})
         }
-
         this.setState(
           {
             loaded: true,
@@ -269,7 +329,15 @@ handleSaveContinueItems = () =>{
     });  
 
     return (
-      <div className="dashboard-page">
+      <div>
+        {(!this.state.loaded)  && (
+          <div className="overlay-loader">
+            <div className="loader-container">
+                <img className="loader-image" src={loaderURL}></img>
+            </div>
+          </div>
+        )}
+        <div className="dashboard-page">
         <Grid layout="fluid">
                 <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
         </Grid>
@@ -286,7 +354,7 @@ handleSaveContinueItems = () =>{
                         name="ItemName" 
                         label="Item Name" 
                         onChange={this.handleItemNameChange}
-                        value={this.state.ItemNameValue}
+                        value={this.state.itemNameValue}
                         />
               </div>
           </GridColumn>
@@ -367,16 +435,16 @@ handleSaveContinueItems = () =>{
           <GridColumn medium={12}>
               <div className="button-row">
                 <div className="button-container">
-                  <Button onClick={this.handleSaveItem.bind(this)} appearance="warning">Add</Button>
+                  <Button isDisabled={!this.state.loaded} onClick={this.handleSaveItem.bind(this)} appearance="warning">Add</Button>
                 </div>
                 <div className="button-container">
-                  <Button onClick={this.handleSaveContinueItems.bind(this)} appearance="warning">Add and Continue</Button>
+                  <Button isDisabled={!this.state.loaded} onClick={this.handleSaveContinueItems.bind(this)} appearance="warning">Add and Continue</Button>
                 </div>
               </div>
           </GridColumn>
         </Grid>
       </div>
-
+      </div>
     );
   }
 }

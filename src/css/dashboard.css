@@ -275,6 +275,23 @@ a:hover{
     font-size: 12px;
 }
 
+.category-pill{
+    background-color: rgb(238, 184, 60,0.2);
+    border: none;
+    color: black;
+    padding: 1px 3px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    margin: 2px;
+    border-radius: 5px;
+    font-size: 8px;
+    height: 20px;
+    overflow: hidden;
+    max-width: 85%;
+    font-weight: 300!important;
+}
+
 
 
 /* Items Page End */
@@ -364,5 +381,33 @@ a:hover{
     text-align: center;
     background-color:#bdbdbd ;
     cursor: pointer;
+}
+
+.overlay-loader{
+    height: 50em;
+    width: 100%;
+    background: rgb(1,1,1,0.2);
+    position: fixed;
+    top:1px;
+    left: 1px;
+    z-index: 1;
+    display: block;
+    text-align: center;
+    line-height: 50em;
+}
+.loader-container{
+    /* height: 50em;
+    width: 100%;
+    background-color: #eaeaea;
+    text-align: center;
+    line-height: 100px;
+    display: block; */
+
+}
+
+.loader-image{
+    max-width:100%;
+    max-height:100%;
+    vertical-align: middle;
 }
 /* Add Edit Items Page End */
