@@ -108,7 +108,7 @@ class LoginPage extends Component {
             cookies.set('first_name', data.first_name, { path: '/' });
             cookies.set('last_name', data.last_name, { path: '/' });
             cookies.set('email', data.email, { path: '/' });
-            browserHistory.push("/adminpanel/settings");
+            browserHistory.push("/adminpanel/items");
         }else{
 
             cookies.set('auth_token', '', { path: '/' });
@@ -144,7 +144,7 @@ class LoginPage extends Component {
               is_staff: data.is_staff,
               last_name: data.last_name,
             });
-            browserHistory.push("/adminpanel/settings");
+            browserHistory.push("/adminpanel/items");
         }
       })
       .catch(error => {

@@ -42,9 +42,17 @@ import ReactPaginate from 'react-paginate';
 import styled from "styled-components";
 var changeCase = require("change-case");
 
+function titleCase(str) {
+  str = str.toLowerCase().split(' ');
+  for (var i = 0; i < str.length; i++) {
+    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1); 
+  }
+  return str.join(' ');
+}
+
 
 // api url path
-var url = "/v1/itemcats";
+var url = "/v1/vendors";
 
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
@@ -55,16 +63,24 @@ const itemOptions = [
 ]
 
 const emptyModalData = {
-  "category": "",
-  "description": "",
-  "id": "",
-  "sub_category": ""
-};
+        "id": "",
+        "contact_phone": "",
+        "contact_name": "",
+        "pincode": "",
+        "city": "",
+        "state": "",
+        "source": "",
+        "address": "",
+        "owner_name": "",
+        "owner_phone": "",
+        "company_name": "",
+        "email": ""
+    }
+const deleteConfMessage = "Are you sure you want to delete the vendor? Please note that this will not delete any items but will remove this vendor from all items."
+const deleteConfHeader = "Confirm Vendor Deletion"
 
-const deleteConfMessage = "Are you sure you want to delete the category? Please note that this will not delete any items but will remove category from all assigned items."
-const deleteConfHeader = "Confirm Item Category Deletion"
 
-class ItemCategory extends Component {
+class Vendors extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -78,9 +94,14 @@ class ItemCategory extends Component {
       // filter variables
       sortByOptions: [],
       orderByOptions: [],
-      categoryOptions: [],
+      cityOptions: [],
+      stateOptions: [],
+      sourceOptions: [],
+
       searchIcon: true,
-      categoryValue: [],
+      sourceValue: [],
+      cityValue: [],
+      stateValue: [],
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
@@ -116,7 +137,8 @@ class ItemCategory extends Component {
       search: this.state.searchValue,
       page_num: 1,
       page_size: this.state.pageSize.value,
-      category: (this.state.categoryValue).map(x => x['value']).join(",")
+      city: (this.state.cityValue).map(x => x['value']).join(","),
+      state: (this.state.stateValue).map(x => x['value']).join(",")
     };
     let payload = Object.assign({}, payloadData, obj);
     // console.log(payload, "Payload");
@@ -158,12 +180,21 @@ class ItemCategory extends Component {
     });
   };
 
-  handleCategoryChange = value => {
+  handleCityChange = value => {
     const data = (value).map(x => x['value']).join(",");
-    this.setState({ categoryValue: value, pageNum: 1 }, () => {
-      this.applyFilter({ category: data, page_num: 1 });
+    this.setState({ cityValue: value, pageNum: 1 }, () => {
+      this.applyFilter({ city: data, page_num: 1 });
     });
   };
+
+  handleStateChange = value => {
+    const data = (value).map(x => x['value']).join(",");
+    this.setState({ stateValue: value, pageNum: 1 }, () => {
+      this.applyFilter({ state: data, page_num: 1 });
+    });
+  };
+
+
 
   toggleOrderBy = () => {
     let orderBy = this.state.orderBy;
@@ -176,18 +207,6 @@ class ItemCategory extends Component {
     }
   };
 
-  clearFilter = () => {
-    this.setState({
-      categoryValue: [],
-      searchValue: "",
-      sortValue: "",
-      orderBy: "asc",
-      pageNum: 1,
-      searchIcon: true
-    }, () => {
-      this.applyFilter();
-    });
-  }
 
 
   handleSearchChange = event => {
@@ -286,18 +305,25 @@ class ItemCategory extends Component {
     var submit = true
     const dataList = this.state.data;
     const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-    console.log(index)
-    const categoryList = this.state.categoryOptions;
-    const indexCat = categoryList.findIndex(x => x.value === data.category.value);
-    console.log(indexCat)
+    const sourceList = this.state.sourceOptions;
+    const indexSource = sourceList.findIndex(x => x.value === data.source.value);
+
     // console.log(index)
     if (submit) {
       this.setState({ loaded: false });
       if (this.state.isNew) {
         api(url, 'post' ,{
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description
+          company_name: data.company_name,
+          owner_name: data.owner_name,
+          owner_phone: data.owner_phone,
+          contact_name: data.contact_name,
+          contact_phone: data.contact_phone,
+          city: data.city.value,
+          state: data.state.value,
+          address: data.address,
+          pincode: data.pincode,
+          source: data.source.value,
+          email: data.email,
         }).then(response => {
           const { data, message, success } = response;
           this.props.actions.addFlag({
@@ -305,11 +331,13 @@ class ItemCategory extends Component {
             appearance: (success ? "warning" :  "danger")
           });    
           if (success){
-            if (indexCat === -1){
+            if (indexSource === -1){
               this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
+                sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
               })
             }            
+
+
             this.setState({
               data: [data, ...this.state.data],
               loaded: true
@@ -323,9 +351,17 @@ class ItemCategory extends Component {
         });
       }else{
         api(url + '/' + this.state.activeDataId,'put', {
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description,
+          company_name: data.company_name,
+          owner_name: data.owner_name,
+          owner_phone: data.owner_phone,
+          contact_name: data.contact_name,
+          contact_phone: data.contact_phone,
+          city: data.city.value,
+          state: data.state.value,
+          address: data.address,
+          pincode: data.pincode,
+          source: data.source.value,
+          email: data.email,
         }).then(response => {
           const { data, message, success } = response;
           this.props.actions.addFlag({
@@ -333,11 +369,12 @@ class ItemCategory extends Component {
             appearance: (success ? "warning" :  "danger")
           });    
           if (success){
-            if (indexCat === -1){
+            if (indexSource === -1){
               this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
+                sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
               })
-            }
+            }            
+
             this.setState({            
               data: [
                 ...this.state.data.slice(0, index),
@@ -376,7 +413,9 @@ class ItemCategory extends Component {
             numPages: num_pages,
             sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
             orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
-            categoryOptions: JSON.parse(JSON.stringify(filters.category)),
+            stateOptions: JSON.parse(JSON.stringify(filters.states)),
+            cityOptions: JSON.parse(JSON.stringify(filters.cities)),
+            sourceOptions: JSON.parse(JSON.stringify(filters.source))
           }
         );
       }
@@ -406,23 +445,30 @@ class ItemCategory extends Component {
     const head = {
       cells: [
         {
-          key: "category",
-          content: "Category",
+          key: "company",
+          content: "Company",
+          width: 25,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "owner_details",
+          content: "Owner Details",
           width: 20,
           isSortable: false,
           shouldTruncate: false
         },
         {
-          key: "sub_category",
-          content: "Sub Category",
+          key: "other_contact",
+          content: "Other Contact Details",
           width: 20,
           isSortable: false,
           shouldTruncate: false
         },
         {
-          key: "description",
-          content: "Description",
-          width: 30,
+          key: "address",
+          content: "City & State",
+          width: 15,
           isSortable: false,
           shouldTruncate: false
         },
@@ -444,15 +490,19 @@ class ItemCategory extends Component {
       cells: [
         {
           key: row.id,
-          content: changeCase.titleCase(row.category)
+          content: changeCase.titleCase(row.company_name)
         },
         {
           key: row.id,
-          content: changeCase.titleCase(row.sub_category)
+          content: changeCase.titleCase(row.owner_name ? row.owner_name : "") + (row.owner_phone ? " (" + row.owner_phone + ")" : "")
         },
         {
           key: row.id,
-          content: row.description
+          content: changeCase.titleCase(row.contact_name ? row.contact_name : "") + (row.contact_phone? " (" + row.contact_phone + ")" : "")
+        },
+        {
+          key: row.id,
+          content: titleCase(row.city + ", "+row.state)
         },
         {
           key: row.id,
@@ -506,7 +556,7 @@ class ItemCategory extends Component {
           <GridColumn medium={10}></GridColumn>
           <GridColumn medium={2}>
           <Button onClick={this.handleAddModalOpen} appearance="warning">
-            Add Category
+            Add Vendor
           </Button>
           </GridColumn>
         </Grid>
@@ -528,20 +578,33 @@ class ItemCategory extends Component {
               />
             </div>
           </GridColumn>
-          <GridColumn medium={3}>
+          <GridColumn medium={2}>
             <div className="field-div">
-              <span className="field-label">Category</span>
+              <span className="field-label">City</span>
               <CheckboxSelect
                 className="checkbox-select"
                 classNamePrefix="select"
-                options={this.state.categoryOptions}
-                placeholder="Categories"
-                onChange={this.handleCategoryChange}
-                value={this.state.categoryValue}
+                options={this.state.cityOptions}
+                placeholder="City"
+                onChange={this.handleCityChange}
+                value={this.state.cityValue}
               />
             </div>
           </GridColumn>
-          <GridColumn medium={4}>
+          <GridColumn medium={2}>
+            <div className="field-div">
+              <span className="field-label">State</span>
+              <CheckboxSelect
+                className="checkbox-select"
+                classNamePrefix="select"
+                options={this.state.stateOptions}
+                placeholder="State"
+                onChange={this.handleStateChange}
+                value={this.state.stateValue}
+              />
+            </div>
+          </GridColumn>
+          <GridColumn medium={3}>
           </GridColumn>
           <GridColumn medium={2}>
             <div className="field-div">
@@ -643,44 +706,122 @@ class ItemCategory extends Component {
         <ModalTransition>
           {this.state.isModalOpen && (
 
-            <Modal autoFocus={false}  actions={
+            <Modal autoFocus={false}  width={'80%'}  actions={
               [
                 { text: 'Close', appearance: 'normal', onClick: this.handleModalClose },
               ]
-            } onClose={this.handleModalClose} height={475} heading={(this.state.isNew ? "Add" : "Edit") + " Item Category"}>
+            } onClose={this.handleModalClose} height={600} heading={(this.state.isNew ? "Add" : "Edit") + " Vendor"}>
 
               <Form onSubmit={this.submitData}>
                 {({ formProps }) => (
                   <form {...formProps}>
                     <Grid>
-                    <GridColumn medium={12}>
-                        <Field name="category" defaultValue={{ 'value': this.state.modalData.category, 'label': changeCase.titleCase(this.state.modalData.category) }}
-                              label="Item Category" 
-                              isRequired>
-                          {({ fieldProps }) => <CreatableSelect options={this.state.categoryOptions} 
-                          // placeholder="eg. Sentence Correction"
-                           {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-                      <GridColumn medium={12}>
-                        <Field name="sub_category" defaultValue={this.state.modalData.sub_category}
-                              label="Sub Category" 
+                    <GridColumn medium={6}>
+                        <Field name="company_name" defaultValue={this.state.modalData.company_name}
+                              label="Company Name" 
                               isRequired>
                           {({ fieldProps }) => <TextField 
                           // placeholder="eg. Inference" 
                           {...fieldProps} />}
                         </Field>
-                      </GridColumn>
-                      <GridColumn medium={12}>
-                        <Field name="description"
-                            defaultValue={this.state.modalData.description}
-                            label="Category Description"                            
-                            // isRequired
-                            >
-                          {({ fieldProps }) => <TextArea
-                          minimumRows = {3} 
-                          // placeholder="eg. Inference are topics which require xyz" 
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="company_email" defaultValue={this.state.modalData.email}
+                              label="Company Email" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
                           {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="owner_name" defaultValue={this.state.modalData.owner_name}
+                              label="Owner Name" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="owner_phone" defaultValue={this.state.modalData.owner_phone}
+                              label="Owner Phone" 
+                              isRequired>
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="contact_name" defaultValue={this.state.modalData.contact_name}
+                              label="Other Contact Name" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="contact_phone" defaultValue={this.state.modalData.contact_phone}
+                              label="Other Contact Phone" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="address" defaultValue={this.state.modalData.address}
+                              label="Address" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+
+                    <GridColumn medium={3}>
+                        <Field name="city" defaultValue={{ 'value': this.state.modalData.city, 'label': changeCase.titleCase(this.state.modalData.city) }}
+                              label="City" 
+                              isRequired>
+                          {({ fieldProps }) => <Select options={this.state.cityOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
+                      <GridColumn medium={3}>
+                        <Field name="state" defaultValue={{ 'value': this.state.modalData.state, 'label': changeCase.titleCase(this.state.modalData.state) }}
+                              label="State" 
+                              isRequired>
+                          {({ fieldProps }) => <Select options={this.state.stateOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
+
+                    <GridColumn medium={4}>
+                        <Field name="pincode" defaultValue={this.state.modalData.pincode}
+                              label="Pincode" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    
+
+                      <GridColumn medium={8}>
+                        <Field name="source" defaultValue={{ 'value': this.state.modalData.source, 'label': changeCase.titleCase(this.state.modalData.source) }}
+                              label="Source" 
+                              isRequired>
+                          {({ fieldProps }) => <CreatableSelect options={this.state.sourceOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
                         </Field>
                       </GridColumn>
                     </Grid>
@@ -729,4 +870,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   null,
   mapDispatchToProps
-)(ItemCategory);
+)(Vendors);

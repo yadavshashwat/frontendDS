@@ -13,11 +13,13 @@ import Settings from "../pages/Dashboard/DashboardPages/SettingsPage.jsx";
 import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCategoryManagement.jsx"
 import Items from "../pages/Dashboard/DashboardPages/ItemManagement.jsx";
 import AddEditItems from "../pages/Dashboard/DashboardPages/AddEditItem";
+import VendorManagement from "../pages/Dashboard/DashboardPages/VendorManagement";
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
 import SignOutIcon from '@atlaskit/icon/glyph/sign-out';
 import TrayIcon from '@atlaskit/icon/glyph/tray';
+import MarketplaceIcon from '@atlaskit/icon/glyph/marketplace';
 
 const basePath = ""
 const Routes = [
@@ -41,6 +43,14 @@ const Routes = [
     viewLevel:1,
     navbarDisplayName: "Item Details",
     navbarIcon:TrayIcon
+  },
+  {
+    path:  basePath +  "/adminpanel/vendors",
+    component: VendorManagement,
+    pageType:"dashboard",
+    viewLevel:1,
+    navbarDisplayName: "Vendor Management",
+    navbarIcon:MarketplaceIcon
   },
   {
     path:  basePath +  "/adminpanel/settings",

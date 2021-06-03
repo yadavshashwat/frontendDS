@@ -389,6 +389,7 @@ handleSaveContinueItems = () =>{
                         placeholder="500, 1000 etc."
                         name="ItemName" 
                         label="Item Name" 
+                        type="number"
                         onChange={this.handleSellingPriceChange}
                         value={this.state.ItemSellingPrice}
                         />
