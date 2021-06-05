@@ -14,6 +14,7 @@ import ItemCategoryManagement from "../pages/Dashboard/DashboardPages/ItemCatego
 import Items from "../pages/Dashboard/DashboardPages/ItemManagement.jsx";
 import AddEditItems from "../pages/Dashboard/DashboardPages/AddEditItem";
 import VendorManagement from "../pages/Dashboard/DashboardPages/VendorManagement";
+import ItemDetails from "../pages/Dashboard/DashboardPages/ItemDetails";
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
@@ -29,6 +30,15 @@ const Routes = [
     component: LoginPage,
   },
   {
+    path:  basePath +  "/adminpanel/items/:itemid/edit-item",
+    component: AddEditItems,
+    pageType:"dashboard",
+    viewLevel:2,
+    navbarDisplayName: "Item Details",
+    navbarIcon:TrayIcon
+  },
+
+  {
     path:  basePath +  "/adminpanel/items/add-item",
     component: AddEditItems,
     pageType:"dashboard",
@@ -36,6 +46,16 @@ const Routes = [
     navbarDisplayName: "Item Details",
     navbarIcon:TrayIcon
   },
+
+  {
+    path:  basePath +  "/adminpanel/items/:itemid",
+    component: ItemDetails,
+    pageType:"dashboard",
+    viewLevel:2,
+    navbarDisplayName: "Item Details",
+    navbarIcon:TrayIcon
+  },
+
   {
     path:  basePath +  "/adminpanel/items",
     component: Items,
@@ -44,6 +64,7 @@ const Routes = [
     navbarDisplayName: "Item Details",
     navbarIcon:TrayIcon
   },
+
   {
     path:  basePath +  "/adminpanel/vendors",
     component: VendorManagement,

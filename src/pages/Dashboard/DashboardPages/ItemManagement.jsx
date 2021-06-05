@@ -433,7 +433,7 @@ class ItemCategory extends Component {
       renderBodyElement = this.state.data.map((row, key) => {
         return (
                 <GridColumn key = {key} medium={2} className="item-grid">
-                  <Link to={""}>
+                  <Link to={"/adminpanel/items/" + row.id}>
                       <div className="item-div">
                         <div className="item-div-internal">
                           <div className="item-image-container">

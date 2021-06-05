@@ -1,6 +1,6 @@
 // React
 import React, { Component } from 'react';
-
+import { Link } from 'react-router';
 // Styles
 import "../../../css/dashboard.css"
 
@@ -27,13 +27,13 @@ import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import TextArea from '@atlaskit/textarea';
-
+import Gallery from 'react-grid-gallery';
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
-
+import EditorEditIcon from '@atlaskit/icon/glyph/editor/edit';
 // Components
 // import ContentWrapper from '../../../components/ContentWrapper';
 
@@ -50,9 +50,20 @@ function titleCase(str) {
   return str.join(' ');
 }
 
+function getMeta(url){   
+  var img = new Image();
+  img.addEventListener("load", function(){
+      console.log(this.naturalWidth)
+      return ({'width': this.naturalWidth,'height': this.naturalHeight });
+  });
+  img.src = url;
+}
 
 // api url path
-var url = "/v1/vendors";
+
+var url_itemvendor = "/v1/itemvendors/";
+var url_item = "/v1/items/";
+var url_vendoritempair = "/v1/vendoritemspair/";
 
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
@@ -76,21 +87,22 @@ const emptyModalData = {
         "company_name": "",
         "email": ""
     }
-const deleteConfMessage = "Are you sure you want to delete the vendor? Please note that this will not delete any items but will remove this vendor from all items."
-const deleteConfHeader = "Confirm Vendor Deletion"
+const deleteConfMessage = "Are you sure you want to remove the vendor? Please note that this will not delete the vendor but will remove this vendor the items."
+const deleteConfHeader = "Confirm Vendor Removal"
 
 
-class Vendors extends Component {
+class ItemDetails extends Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [],
+      dataVendor:[],
       // pagination variables
       loaded: false,
       pageNum: 1, //Current page
       pageSize: {'value':20,'label':'20 Items/Page'},
       
-      
+      ImageList:[],
       // filter variables
       sortByOptions: [],
       orderByOptions: [],
@@ -105,6 +117,7 @@ class Vendors extends Component {
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
+      costPriceValue:"",
       
       // Modal variables
 
@@ -114,6 +127,7 @@ class Vendors extends Component {
       modalData: emptyModalData,
       activeDataId: "",
       isConfModalOpen:false,
+      costUpdateModal:false
 
     };
   }
@@ -142,12 +156,12 @@ class Vendors extends Component {
     };
     let payload = Object.assign({}, payloadData, obj);
     // console.log(payload, "Payload");
-    api(url,'get', payload)
+    api(url_itemvendor + this.state.data.id ,'get', payload)
       .then(response => {
         const { data, success, num_pages } = response;
         if (success) {
           this.setState({
-            data: data,
+            dataVendor: data,
             loaded: true,
             numPages: num_pages,
           });
@@ -236,9 +250,10 @@ class Vendors extends Component {
 
   handleDelete = () => {
     const dataId = this.state.activeDataId
-    const dataList = this.state.data;
+    const dataList = this.state.dataVendor;
     const index = dataList.findIndex(x => x.id === dataId);
-    api(url + '/' + dataId, 'delete',{}).then(response => {
+    console.log(index)
+    api(url_vendoritempair  + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
       this.props.actions.addFlag({
         message: message,
@@ -246,9 +261,9 @@ class Vendors extends Component {
       });    
       if (success){
         this.setState({            
-          data: [
-            ...this.state.data.slice(0, index),
-            ...this.state.data.slice(index + 1)
+          dataVendor: [
+            ...this.state.dataVendor.slice(0, index),
+            ...this.state.dataVendor.slice(index + 1)
           ],
           loaded: true,    
         });
@@ -261,165 +276,240 @@ class Vendors extends Component {
     });
   }
 
-  
-  handleEditModalOpen = event => {
-    const data_id = event.currentTarget.dataset.id
-    this.setState({ isNew: false, activeDataId: parseInt(data_id,10) });
-
-    api(url + '/' + data_id,'get', {}).then(response => {
-      const { data, success } = response;
-      if (success) {
-        this.setState(
-          {
-            modalData: data,
-          }, () => {
-            this.setState({ isModalOpen: true });
-          });
-      }
-    });
-  }
 
 
-  handleAddModalOpen = () => {
+  handleEditorIconClick = event => {
+    const dataId = event.currentTarget.dataset.id;
+    const dataList = this.state.dataVendor;
+    const index = dataList.findIndex(x => x.id === parseInt(dataId,10));
+    console.log(index,dataList,dataId)
+    var costPrice = this.state.dataVendor[index]['cost_price']
     this.setState({
-      isModalOpen: true,
-      isNew: true,
-      activeDataId: "",
-      modalData: Object.assign({}, emptyModalData)
-    });
+      activeDataId: parseInt(dataId,10),
+      costPriceValue: costPrice,
+      costUpdateModal:true
+    })
   }
 
-  handleModalClose = () => {
+  handleCostModalClose = () => {
     this.setState({
-      isModalOpen: false,
-      isNew: true,
       activeDataId: "",
-      modalData: Object.assign({}, emptyModalData)
-    });
+      costPriceValue: "",
+      costUpdateModal:false
+    })
   }
 
+  handleCostPriceChange = event => {
+    var data = event.target.value
+      // this.setState({
+      //   costPriceValue: data,
+      // });
+   
+    if (data >= 0) {
+      this.setState({
+        costPriceValue: data,
+      });
+    } else {
+      this.setState({
+        costPriceValue: "",
+      });
+    }
+  };
 
-
-  
-  submitData = data => {
-    var submit = true
-    const dataList = this.state.data;
-    const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-    const sourceList = this.state.sourceOptions;
-    const indexSource = sourceList.findIndex(x => x.value === data.source.value);
+  handleCostUpdate = () => {
+    const dataId = this.state.activeDataId
+    const dataList = this.state.dataVendor;
+    const index = dataList.findIndex(x => x.id === parseInt(dataId));
 
     // console.log(index)
-    if (submit) {
-      this.setState({ loaded: false });
-      if (this.state.isNew) {
-        api(url, 'post' ,{
-          company_name: data.company_name,
-          owner_name: data.owner_name,
-          owner_phone: data.owner_phone,
-          contact_name: data.contact_name,
-          contact_phone: data.contact_phone,
-          city: data.city.value,
-          state: data.state.value,
-          address: data.address,
-          pincode: data.pincode,
-          source: data.source.value,
-          email: data.email,
-        }).then(response => {
-          const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
-          if (success){
-            if (indexSource === -1){
-              this.setState({
-                sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
-              })
-            }            
-
-
-            this.setState({
-              data: [data, ...this.state.data],
-              loaded: true
-            });
-            this.handleModalClose();  
-          }else{
-            this.setState({
-              loaded:true
-            })
-          }
-        });
-      }else{
-        api(url + '/' + this.state.activeDataId,'put', {
-          company_name: data.company_name,
-          owner_name: data.owner_name,
-          owner_phone: data.owner_phone,
-          contact_name: data.contact_name,
-          contact_phone: data.contact_phone,
-          city: data.city.value,
-          state: data.state.value,
-          address: data.address,
-          pincode: data.pincode,
-          source: data.source.value,
-          email: data.email,
-        }).then(response => {
-          const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
-          if (success){
-            if (indexSource === -1){
-              this.setState({
-                sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
-              })
-            }            
-
-            this.setState({            
-              data: [
-                ...this.state.data.slice(0, index),
-                  data,
-                ...this.state.data.slice(index + 1)
-              ],
-              loaded: true,            
-            });
-            this.handleModalClose();
-          }else{
-            this.setState({
-              loaded:true
-            })
-          }
+    const payload = {
+      'vendor':dataList[index].vendor_details.id,
+      'item':this.state.data.id,
+      'cost_price':this.state.costPriceValue
+    }
+    api(url_vendoritempair  + dataId, 'put',payload).then(response => {
+      const { data, message, success } = response;
+      this.props.actions.addFlag({
+        message: message,
+        appearance: (success ? "warning" :  "danger")
+      });    
+      if (success){
+        this.setState({            
+          dataVendor: [
+            ...this.state.dataVendor.slice(0, index),
+            data,
+            ...this.state.dataVendor.slice(index + 1)
+          ],
+          loaded: true,    
+          activeDataId:"",
+          costUpdateModal:false
         });
       }
-    }
+    });
+
   }
+
+  // submitData = data => {
+  //   var submit = true
+  //   const dataList = this.state.data;
+  //   const index = dataList.findIndex(x => x.id === this.state.activeDataId);
+  //   const sourceList = this.state.sourceOptions;
+  //   const indexSource = sourceList.findIndex(x => x.value === data.source.value);
+
+  //   // console.log(index)
+  //   if (submit) {
+  //     this.setState({ loaded: false });
+  //     if (this.state.isNew) {
+  //       api(url, 'post' ,{
+  //         company_name: data.company_name,
+  //         owner_name: data.owner_name,
+  //         owner_phone: data.owner_phone,
+  //         contact_name: data.contact_name,
+  //         contact_phone: data.contact_phone,
+  //         city: data.city.value,
+  //         state: data.state.value,
+  //         address: data.address,
+  //         pincode: data.pincode,
+  //         source: data.source.value,
+  //         email: data.email,
+  //       }).then(response => {
+  //         const { data, message, success } = response;
+  //         this.props.actions.addFlag({
+  //           message: message,
+  //           appearance: (success ? "warning" :  "danger")
+  //         });    
+  //         if (success){
+  //           if (indexSource === -1){
+  //             this.setState({
+  //               sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
+  //             })
+  //           }            
+  //           this.setState({
+  //             data: [data, ...this.state.data],
+  //             loaded: true
+  //           });
+  //           this.handleModalClose();  
+  //         }else{
+  //           this.setState({
+  //             loaded:true
+  //           })
+  //         }
+  //       });
+  //     }else{
+  //       api(url + '/' + this.state.activeDataId,'put', {
+  //         company_name: data.company_name,
+  //         owner_name: data.owner_name,
+  //         owner_phone: data.owner_phone,
+  //         contact_name: data.contact_name,
+  //         contact_phone: data.contact_phone,
+  //         city: data.city.value,
+  //         state: data.state.value,
+  //         address: data.address,
+  //         pincode: data.pincode,
+  //         source: data.source.value,
+  //         email: data.email,
+  //       }).then(response => {
+  //         const { data, message, success } = response;
+  //         this.props.actions.addFlag({
+  //           message: message,
+  //           appearance: (success ? "warning" :  "danger")
+  //         });    
+  //         if (success){
+  //           if (indexSource === -1){
+  //             this.setState({
+  //               sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
+  //             })
+  //           }            
+
+  //           this.setState({            
+  //             data: [
+  //               ...this.state.data.slice(0, index),
+  //                 data,
+  //               ...this.state.data.slice(index + 1)
+  //             ],
+  //             loaded: true,            
+  //           });
+  //           this.handleModalClose();
+  //         }else{
+  //           this.setState({
+  //             loaded:true
+  //           })
+  //         }
+  //       });
+  //     }
+  //   }
+  // }
 
 
   // On Load
   componentDidMount() {
+    var Path = window.location.pathname.split("/")
+    var textPath = null;
+    textPath = decodeURIComponent(Path[3])
+    console.log(textPath)
     let filtersData =  {  page_num: this.state.pageNum, page_size: this.state.pageSize.value }
-    api(url, 'get', filtersData).then(response => {
-      const { data, filters, message, success, num_pages } = response;
+
+    
+    api(url_item + textPath, 'get', {}).then(response => {
+      const { data,  message, success } = response;
       this.props.actions.addFlag({
         message: message,
         appearance: (success ? "warning" :  "danger")
       });
-
       if (success) {
+
+        var IMAGES = []
+        for(var i = 0; i < data.image_details.length; i++){
+          // var meta = getMeta(data.image_details[i].path)
+          IMAGES.push(
+            {
+              src: data.image_details[i].path,
+              thumbnail: data.image_details[i].path,
+              // thumbnailWidth: meta['width'],
+              // thumbnailHeight: meta['height'],
+              isSelected: false,
+              caption: ""
+          }
+          )
+        }
+    
         this.setState(
           {
-            data: data,
-            loaded: true,
-            numPages: num_pages,
-            sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
-            orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
-            stateOptions: JSON.parse(JSON.stringify(filters.states)),
-            cityOptions: JSON.parse(JSON.stringify(filters.cities)),
-            sourceOptions: JSON.parse(JSON.stringify(filters.source))
+            ImageList:IMAGES,
+            data: data
           }
         );
+
+        api(url_itemvendor + textPath, 'get', filtersData).then(response => {
+          const { data, filters, message, success, num_pages } = response;
+          this.props.actions.addFlag({
+            message: message,
+            appearance: (success ? "warning" :  "danger")
+          });
+          if (success) {
+            this.setState(
+              {
+                dataVendor: data,
+                loaded: true,
+                numPages: num_pages,
+                sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
+                orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
+                stateOptions: JSON.parse(JSON.stringify(filters.states)),
+                cityOptions: JSON.parse(JSON.stringify(filters.cities)),
+                sourceOptions: JSON.parse(JSON.stringify(filters.source))
+              }
+            );
+          }
+        });
+    
       }
     });
+
+
+
+
+
+    
   }
 
 
@@ -458,17 +548,24 @@ class Vendors extends Component {
           isSortable: false,
           shouldTruncate: false
         },
-        {
-          key: "other_contact",
-          content: "Other Contact Details",
-          width: 20,
-          isSortable: false,
-          shouldTruncate: false
-        },
+        // {
+        //   key: "other_contact",
+        //   content: "Other Contact Details",
+        //   width: 20,
+        //   isSortable: false,
+        //   shouldTruncate: false
+        // },
         {
           key: "address",
           content: "City & State",
           width: 15,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "cost_price",
+          content: "Cost",
+          width: 20,
           isSortable: false,
           shouldTruncate: false
         },
@@ -482,26 +579,34 @@ class Vendors extends Component {
       ]
     }
 
+
     let rowRenderElement = null;
     // if (this.state.loaded) {
-    rowRenderElement = this.state.data.map((row, index) => ({
+    rowRenderElement = this.state.dataVendor.map((row, index) => ({
       key: `row.id`,
       cells: [
         {
           key: row.id,
-          content: changeCase.titleCase(row.company_name)
+          content: changeCase.titleCase(row.vendor_details.company_name)
         },
         {
           key: row.id,
-          content: changeCase.titleCase(row.owner_name ? row.owner_name : "") + (row.owner_phone ? " (" + row.owner_phone + ")" : "")
+          content: changeCase.titleCase(row.vendor_details.owner_name ? row.vendor_details.owner_name : "") + (row.vendor_details.owner_phone ? " (" + row.vendor_details.owner_phone + ")" : "")
         },
         {
           key: row.id,
-          content: changeCase.titleCase(row.contact_name ? row.contact_name : "") + (row.contact_phone? " (" + row.contact_phone + ")" : "")
+          content: titleCase(row.vendor_details.city + ", "+row.vendor_details.state)
         },
         {
           key: row.id,
-          content: titleCase(row.city + ", "+row.state)
+          content: <div className="cost-price-container">
+                      <div className="cost-price">
+                          {"₹ " + row.cost_price}
+                      </div>
+                      <div data-id={row.id} onClick={this.handleEditorIconClick.bind(this)} className="cost-price-icon">
+                        <EditorEditIcon />
+                      </div>
+                  </div>
         },
         {
           key: row.id,
@@ -511,9 +616,9 @@ class Vendors extends Component {
             shouldFlip={false}
             position="bottom"
           >
-            <DropdownItemGroup key={row.id}>
-              <DropdownItem data-id={row.id} onClick={this.handleEditModalOpen.bind(this)}>Edit</DropdownItem>
-              <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Delete</DropdownItem>
+            <DropdownItemGroup key={row.vendor_details.id}>
+              <Link to={""}><DropdownItem data-id={row.vendor_details.id}>Open</DropdownItem></Link>
+              <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Remove</DropdownItem>
             </DropdownItemGroup>
           </DropdownMenu>
         },
@@ -525,7 +630,14 @@ class Vendors extends Component {
     var Path = window.location.pathname.split("/")
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
-        var textPath = changeCase.titleCase(Path[index])
+        var textPath = ""
+        if (index == 3){
+          var textPath = this.state.data ? changeCase.titleCase(this.state.data.name) : ""
+        }else{
+          var textPath = changeCase.titleCase(Path[index])
+        }
+        
+        
         var link =  (Path.slice(0,index + 1).join("/"))
         // console.log(index,textPath, link)
         try{
@@ -539,6 +651,31 @@ class Vendors extends Component {
       }
       
     });  
+
+    // const IMAGES =
+    //     [{
+    //             src: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
+    //             thumbnail: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_n.jpg",
+    //             thumbnailWidth: 320,
+    //             thumbnailHeight: 174,
+    //             isSelected: true,
+    //             caption: "After Rain (Jeshu John - designerspics.com)"
+    //     },
+    //     {
+    //             src: "https://c2.staticflickr.com/9/8356/28897120681_3b2c0f43e0_b.jpg",
+    //             thumbnail: "https://c2.staticflickr.com/9/8356/28897120681_3b2c0f43e0_n.jpg",
+    //             thumbnailWidth: 320,
+    //             thumbnailHeight: 212,
+    //             tags: [{value: "Ocean", title: "Ocean"}, {value: "People", title: "People"}],
+    //             caption: "Boats (Jeshu John - designerspics.com)"
+    //     },
+        
+    //     {
+    //             src: "https://c4.staticflickr.com/9/8887/28897124891_98c4fdd82b_b.jpg",
+    //             thumbnail: "https://c4.staticflickr.com/9/8887/28897124891_98c4fdd82b_n.jpg",
+    //             thumbnailWidth: 320,
+    //             thumbnailHeight: 212
+    //     }]
 
     let orderByIcon = <SortIconContainer><ArrowUpCircleIcon></ArrowUpCircleIcon></SortIconContainer>
     if (this.state.orderBy === "asc") {
@@ -554,12 +691,48 @@ class Vendors extends Component {
         <Grid layout="fluid">
           <GridColumn medium={10}></GridColumn>
           <GridColumn medium={2}>
-          <Button onClick={this.handleAddModalOpen} appearance="warning">
-            Add Vendor
-          </Button>
+            <Link to={"/adminpanel/items/" + this.state.data.id + "/edit-item"}>
+              <Button  appearance="warning">
+              Edit Item
+              </Button>
+            </Link>
           </GridColumn>
         </Grid>
         <Grid layout="fluid">
+          <h2>Item Details</h2>
+        </Grid>
+        <br></br>
+        <Grid layout="fluid">
+          <GridColumn medium={6}>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Name</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.name ? titleCase(this.state.data.name) : ""}</span></GridColumn>
+              </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Category</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.category_details ? titleCase(this.state.data.category_details.category) : ""}</span></GridColumn>
+              </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Sub Category</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.category_details? titleCase(this.state.data.category_details.sub_category) : ""}</span></GridColumn>
+              </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Dimensions</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.dimensions? this.state.data.dimensions : ""}</span></GridColumn>
+              </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Description</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.description? this.state.data.description : ""}</span></GridColumn>
+              </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Selling Price</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.sell_price? ("₹ " + this.state.data.sell_price) : ""}</span></GridColumn>
+              </Grid>
+          </GridColumn>
+          <GridColumn medium={6}>
+            <Gallery enableImageSelection={false} images={this.state.ImageList}/>,
+          </GridColumn>
+        </Grid>
+        <br></br>
+        <Grid layout="fluid">
+          <h2>Listed Vendors</h2>
+        </Grid>
+        <br></br>
+        <Grid layout="fluid">        
           <GridColumn medium={2}>
             <div className="field-div">
               {this.state.searchIcon === true && (
@@ -703,145 +876,6 @@ class Vendors extends Component {
           </DataWrapper>
         </Grid>
         <ModalTransition>
-          {this.state.isModalOpen && (
-
-            <Modal autoFocus={false}  width={'80%'}  actions={
-              [
-                { text: 'Close', appearance: 'normal', onClick: this.handleModalClose },
-              ]
-            } onClose={this.handleModalClose} height={600} heading={(this.state.isNew ? "Add" : "Edit") + " Vendor"}>
-
-              <Form onSubmit={this.submitData}>
-                {({ formProps }) => (
-                  <form {...formProps}>
-                    <Grid>
-                    <GridColumn medium={6}>
-                        <Field name="company_name" defaultValue={this.state.modalData.company_name}
-                              label="Company Name" 
-                              isRequired>
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="company_email" defaultValue={this.state.modalData.email}
-                              label="Company Email" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="owner_name" defaultValue={this.state.modalData.owner_name}
-                              label="Owner Name" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="owner_phone" defaultValue={this.state.modalData.owner_phone}
-                              label="Owner Phone" 
-                              isRequired>
-                          {({ fieldProps }) => <TextField 
-                          type="number"
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="contact_name" defaultValue={this.state.modalData.contact_name}
-                              label="Other Contact Name" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="contact_phone" defaultValue={this.state.modalData.contact_phone}
-                              label="Other Contact Phone" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          type="number"
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    <GridColumn medium={6}>
-                        <Field name="address" defaultValue={this.state.modalData.address}
-                              label="Address" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-
-                    <GridColumn medium={3}>
-                        <Field name="city" defaultValue={{ 'value': this.state.modalData.city, 'label': changeCase.titleCase(this.state.modalData.city) }}
-                              label="City" 
-                              isRequired>
-                          {({ fieldProps }) => <Select options={this.state.cityOptions} 
-                          // placeholder="eg. Sentence Correction"
-                           {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-
-                      <GridColumn medium={3}>
-                        <Field name="state" defaultValue={{ 'value': this.state.modalData.state, 'label': changeCase.titleCase(this.state.modalData.state) }}
-                              label="State" 
-                              isRequired>
-                          {({ fieldProps }) => <Select options={this.state.stateOptions} 
-                          // placeholder="eg. Sentence Correction"
-                           {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-
-
-                    <GridColumn medium={4}>
-                        <Field name="pincode" defaultValue={this.state.modalData.pincode}
-                              label="Pincode" 
-                              >
-                          {({ fieldProps }) => <TextField 
-                          type="number"
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                    </GridColumn>
-                    
-
-                      <GridColumn medium={8}>
-                        <Field name="source" defaultValue={{ 'value': this.state.modalData.source, 'label': changeCase.titleCase(this.state.modalData.source) }}
-                              label="Source" 
-                              isRequired>
-                          {({ fieldProps }) => <CreatableSelect options={this.state.sourceOptions} 
-                          // placeholder="eg. Sentence Correction"
-                           {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-                    </Grid>
-                    <Grid>
-                      <GridColumn medium={12}>
-                        <br></br>
-                        <span className="invalid">{this.state.submitError}</span>
-                        <br></br>
-                        <Button type="submit" appearance="warning">
-                          Submit
-                      </Button>
-                      </GridColumn>
-                    </Grid>
-                  </form>
-                )}
-              </Form>
-            </Modal>
-
-          )}
-        </ModalTransition>
-        <ModalTransition>
           {this.state.isConfModalOpen && (
             <Modal autoFocus={false}  actions={
               [
@@ -851,9 +885,33 @@ class Vendors extends Component {
             } onClose={this.handleConfModalClose} heading={deleteConfHeader}>
                 {deleteConfMessage}              
             </Modal>
+          )}
+        </ModalTransition>
+        <ModalTransition>
+          {this.state.costUpdateModal && (
+            <Modal autoFocus={false}  actions={
+              [
+                { text: 'Update', appearance: 'warning', onClick: this.handleCostUpdate },
+                { text: 'Close', appearance: 'normal', onClick: this.handleCostModalClose },
+              ]
+            } onClose={this.handleCostModalClose} heading={"Update Vendor Cost"}>
+              <div className="field-div">
+                  <span className="field-label">Cost Price (INR)</span>
+                    <TextField 
+                        placeholder="500, 1000 etc."
+                        name="CostPrice" 
+                        label="Cost Price" 
+                        type="number"
+                        onChange={this.handleCostPriceChange}
+                        value={this.state.costPriceValue}
+                        />
+              </div>
+
+            </Modal>
 
           )}
         </ModalTransition>
+
       </div>
 
     );
@@ -869,4 +927,4 @@ function mapDispatchToProps(dispatch) {
 export default connect(
   null,
   mapDispatchToProps
-)(Vendors);
+)(ItemDetails);

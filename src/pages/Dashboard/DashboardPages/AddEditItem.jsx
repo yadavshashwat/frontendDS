@@ -22,7 +22,7 @@ import TextField from '@atlaskit/textfield';
 import TextArea from '@atlaskit/textarea';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
-
+import { CheckboxSelect } from '@atlaskit/select';
 
 //Icons
 import pathIcon from "../../../routing/BreadCrumbIcons"
@@ -44,7 +44,10 @@ function titleCase(str) {
 // api url path
 var url_items = "/v1/items";
 var url_category = "/v1/itemcats";
+var url_vendor = "/v1/vendors";
+var url_itemvendor = "/v1/itemvendors/";
 var url_image_upload = "/v1/itemimageupload/";
+var url_image_delete = "/v1/itemimagedelete/";
 const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 
 
@@ -54,15 +57,20 @@ class AddEditItem extends Component {
     super(props);
     this.state = {
       loaded: false,
+      isEdit:false,
       // form variables
       categoryOptions: [],
       categoryValue: [],
+      vendorOptions: [],
+      vendorValue: [],
       itemNameValue:"",     
       ItemDescriptionValue:"",
       ItemDimensionsValue:"",
       ItemSellingPrice:"",
       ItemSellingPriceValid:true,
-      ImageList:[]
+      ImageList:[],
+      UploadedImages:[],
+      itemID: ""
     };
     this.defaultState = this.state;
 
@@ -129,6 +137,45 @@ class AddEditItem extends Component {
   }
   
 
+  handleImageDeleteClick = event =>{
+    const dataId = event.currentTarget.dataset.id
+    var currentState = this.state.UploadedImages
+    var indexFile = currentState.findIndex(x => x.id === parseInt(dataId));
+    
+    api(url_image_delete  + dataId, 'delete' ,{}).then(response => {
+    const { message, success } = response;
+    this.props.actions.addFlag({
+      message: message,
+      appearance: (success ? "warning" :  "danger")
+    });    
+    if (success){
+      this.setState({UploadedImages: [
+        ...currentState.slice(0, indexFile),
+        ...currentState.slice(indexFile + 1)
+      ]
+    });
+    }
+  })
+  .catch(error => console.log(error))
+}
+    // // console.log(path)
+    // var currentState = this.state.ImageList
+    // var indexFile = currentState.findIndex(x => x.path === path);
+    // this.setState({ImageList: [
+    //     ...currentState.slice(0, indexFile),
+    //     ...currentState.slice(indexFile + 1)
+    //   ]
+    // })
+    
+
+// handleCategoryChange = 
+
+handleVendorChange = value => {
+  // const data = (value).map(x => x['value']).join(",");
+  this.setState({ vendorValue: value});
+};
+
+
   handleCategoryChange = value => {
     this.setState({ categoryValue: value })
     
@@ -143,6 +190,69 @@ handleSaveContinueItems = () =>{
     this.SaveItem('continue');
 }
 
+
+handleEditItem = () => {
+  // console.log('here')
+  const submitCheck = this.checkError();
+  this.setState({
+    loaded:false
+  })
+  if (submitCheck){
+  const payloadSend = {
+      name: this.state.itemNameValue,
+      category: this.state.categoryValue ? this.state.categoryValue.value : '',
+      description: this.state.ItemDescriptionValue,
+      dimensions: this.state.ItemDimensionsValue,
+      sell_price: this.state.ItemSellingPrice,
+      vendorlist : this.state.vendorValue.map(x => x['value']).join(",")
+    }
+  // console.log(payloadSend)
+  api(url_items + '/' + this.state.itemID, 'put' ,payloadSend)
+  .then(response => {
+    const { data, message, success } = response;
+    var updatedMessage = message
+    if (this.state.ImageList.length > 0){
+      updatedMessage = message + " Uploading Images"
+    }
+    this.props.actions.addFlag({
+      message: updatedMessage,
+      appearance: (success ? "warning" :  "danger")
+    });    
+    if (success){
+      const formData = new FormData();
+      for(var i = 0; i < this.state.ImageList.length ; i += 1) {
+        formData.append("file", this.state.ImageList[i]);          
+      }
+      if (this.state.ImageList.length > 0){
+        imageHandlerApi(url_image_upload + data.id ,formData)
+        .then(response => {
+          const {data, message, success } = response;
+          this.props.actions.addFlag({
+            message: message,
+            appearance: (success ? "warning" :  "danger")
+          });   
+
+        if (success){
+          this.setState({
+            ImageList:[],
+            loaded:true ,
+            UploadedImages:[...this.state.UploadedImages,...data]             
+          });
+          }
+        }).catch(error => console.log(error))
+
+      }else{
+        this.setState({
+          ImageList:[],
+          loaded:true,   
+          UploadedImages:[...this.state.UploadedImages,...data]             
+        });
+      }
+    }
+  })
+  .catch(error => console.log(error))
+}
+};    
 
   checkError = () => {
     var noError = true
@@ -175,6 +285,7 @@ handleSaveContinueItems = () =>{
         description: this.state.ItemDescriptionValue,
         dimensions: this.state.ItemDimensionsValue,
         sell_price: this.state.ItemSellingPrice,
+        vendorlist : this.state.vendorValue.map(x => x['value']).join(",")
       }
     // console.log(payloadSend)
     api(url_items, 'post' ,payloadSend)
@@ -211,6 +322,7 @@ handleSaveContinueItems = () =>{
                 ItemSellingPrice:"",
                 ItemSellingPriceValid:true,
                 categoryValue:"",
+                vendorValue:[],
                 ImageList:[],
                 loaded:true              
               });
@@ -229,6 +341,10 @@ handleSaveContinueItems = () =>{
               });
               console.log('here1')
             } 
+          }else{
+            this.setState({
+              loaded:true
+            })
           }
           }).catch(error => console.log(error))
 
@@ -240,6 +356,7 @@ handleSaveContinueItems = () =>{
               ItemDimensionsValue:"",
               ItemSellingPrice:"",
               ItemSellingPriceValid:true,
+              vendorValue:[],
               categoryValue:"",
               ImageList:[],
               loaded:true              
@@ -256,34 +373,152 @@ handleSaveContinueItems = () =>{
             });
           } 
         }
+      }else{
+        this.setState({
+          loaded:true
+        })
       }
     })
     .catch(error => console.log(error))
+  }else{
+    this.setState({
+      loaded:true
+    })
   }
 };    
 
 
   // On Load
   componentDidMount() {
-    let filtersData =  {  is_all: 1 }
-    api(url_category, 'get', filtersData).then(response => {
-      const { data, success } = response;
-      if (success) {
-        var categoryOptions = []        
-        var updatedData = JSON.parse(JSON.stringify(data));
-        for(var i = 0; i < updatedData.length ; i += 1) {
-            var value = updatedData[i]['id']
-            var label = titleCase(updatedData[i]['category'] + ' - ' +updatedData[i]['sub_category'])
-            categoryOptions.push({'value':value,'label':label})
+    var Path = window.location.pathname.split("/")
+    var edit = false
+    var itemID = Path[3]
+
+    if(Path[4] === "edit-item"){
+      this.setState({
+        isEdit:true,
+        itemID: itemID
+      })
+      edit = true
+    }
+    // console.log(Path[3],Path[4],itemID)
+    if (edit){
+      api(url_items + '/' + itemID, 'get', {}).then(response => {
+        const { data, success } = response;
+        if (success) {
+          this.setState(
+            {
+              categoryValue: data.category_details ? {'value':data.category_details.id,'label':titleCase(data.category_details.category + ' - '+ data.category_details.sub_category)}:"",
+              itemNameValue:data.name,     
+              ItemDescriptionValue:data.description,
+              ItemDimensionsValue:data.dimensions,
+              ItemSellingPrice:data.sell_price,
+              UploadedImages:data.image_details
+            }
+          );
+
+          let filtersData =  {  is_all: 1 }
+          api(url_category, 'get', filtersData).then(response => {
+            const { data, success } = response;
+            if (success) {
+              var categoryOptions = []        
+              var updatedData = JSON.parse(JSON.stringify(data));
+              for(var i = 0; i < updatedData.length ; i += 1) {
+                  var value = updatedData[i]['id']
+                  var label = titleCase(updatedData[i]['category'] + ' - ' +updatedData[i]['sub_category'])
+                  categoryOptions.push({'value':value,'label':label})
+              }
+              this.setState(
+                {
+                  categoryOptions: categoryOptions,
+                }
+              );
+              api(url_vendor, 'get', filtersData).then(response => {
+                const { data, success } = response;
+                if (success){
+                  var vendorOptions = []        
+                  var updatedData = JSON.parse(JSON.stringify(data));
+                  for(var i = 0; i < updatedData.length ; i += 1) {
+                      var value = updatedData[i]['id']
+                      var label = titleCase(updatedData[i]['company_name'])
+                      vendorOptions.push({'value':value,'label':label})
+                  }
+                  
+                  this.setState(
+                    {
+                      vendorOptions: vendorOptions,
+                    }
+                  );
+                  api(url_itemvendor + itemID, 'get', {}).then(response => {
+                    const { data, success } = response;
+                    if(success){
+                      var selectedVendors = []        
+                      var updatedData = JSON.parse(JSON.stringify(data));
+                      for(var i = 0; i < updatedData.length ; i += 1) {
+                          var value = updatedData[i]['vendor_details']['id']
+                          var label = titleCase(updatedData[i]['vendor_details']['company_name'])
+                          selectedVendors.push({'value':value,'label':label})
+                      }
+                      this.setState(
+                        {
+                          loaded: true,
+                          vendorValue: selectedVendors,
+                        }
+                      );
+    
+
+                    }});
+
+
+                }});
+
+
+            }
+          });
         }
-        this.setState(
-          {
-            loaded: true,
-            categoryOptions: categoryOptions,
+      });
+    }else{
+      let filtersData =  {  is_all: 1 }
+      api(url_category, 'get', filtersData).then(response => {
+        const { data, success } = response;
+        if (success) {
+          var categoryOptions = []        
+          var updatedData = JSON.parse(JSON.stringify(data));
+          for(var i = 0; i < updatedData.length ; i += 1) {
+              var value = updatedData[i]['id']
+              var label = titleCase(updatedData[i]['category'] + ' - ' +updatedData[i]['sub_category'])
+              categoryOptions.push({'value':value,'label':label})
           }
-        );
-      }
-    });
+          this.setState(
+            {
+              categoryOptions: categoryOptions,
+            }
+          );
+          api(url_vendor, 'get', filtersData).then(response => {
+            const { data, success } = response;
+            if (success){
+              var vendorOptions = []        
+              var updatedData = JSON.parse(JSON.stringify(data));
+              for(var i = 0; i < updatedData.length ; i += 1) {
+                  var value = updatedData[i]['id']
+                  var label = titleCase(updatedData[i]['company_name'])
+                  vendorOptions.push({'value':value,'label':label})
+              }
+              
+              this.setState(
+                {
+                  loaded: true,
+                  vendorOptions: vendorOptions,
+                }
+              );
+            }});
+
+        
+        
+        }
+      });
+  
+    }
   }
 
 
@@ -308,12 +543,40 @@ handleSaveContinueItems = () =>{
     );
   });
     
+  let renderUploadedImageElement = null;
+    
+  renderUploadedImageElement = this.state.UploadedImages.map((row, key) => {
+  return (
+          <GridColumn key = {key} medium={1} className="item-grid">
+                <div className="image-div">
+                  <div className="image-div-internal">
+                    <div className="image-image-container">
+                      <img className="image-image" src={row.path}/>
+                    </div>
+                    <div data-id={row.id}  className="delete-image" onClick={this.handleImageDeleteClick}>
+                      Delete
+                    </div>
+                  </div>  
+              </div>
+          </GridColumn>
+  );
+});
+
 
     let breadCrumbElement = null
     var Path = window.location.pathname.split("/")
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
-        var textPath = changeCase.titleCase(Path[index])
+        if(this.state.isEdit){
+          if(index === 3){
+            var textPath = changeCase.titleCase(this.state.itemNameValue)  
+          }else{
+            var textPath = changeCase.titleCase(Path[index])
+          }  
+        }else{
+          var textPath = changeCase.titleCase(Path[index])
+        }
+        
         var link =  (Path.slice(0,index + 1).join("/"))
         // console.log(index,textPath, link)
         try{
@@ -343,7 +606,7 @@ handleSaveContinueItems = () =>{
         </Grid>
         <br></br>
         <Grid layout="fluid">
-          <h2>Add Item</h2>
+          <h2>{this.state.isEdit ? "Edit": "Add"} Item</h2>
         </Grid>
         <Grid layout="fluid">
           <GridColumn medium={6}>
@@ -410,6 +673,22 @@ handleSaveContinueItems = () =>{
                         />
               </div>
           </GridColumn>
+
+          <GridColumn medium={12}>
+            <div className="field-div">
+                <span className="field-label">Vendors</span>
+                <CheckboxSelect
+                  className="checkbox-select"
+                  classNamePrefix="select"
+                  options={this.state.vendorOptions}
+                  placeholder="Vendors"
+                  onChange={this.handleVendorChange}
+                  value={this.state.vendorValue}
+                />
+              </div>
+          </GridColumn>
+
+
           <GridColumn medium={12}>
           <div className="field-div">
                 <span className="field-label">Item Images</span>
@@ -434,15 +713,38 @@ handleSaveContinueItems = () =>{
             </div>
           )}
           <GridColumn medium={12}>
+          {(this.state.isEdit)  && (
               <div className="button-row">
-                <div className="button-container">
-                  <Button isDisabled={!this.state.loaded} onClick={this.handleSaveItem.bind(this)} appearance="warning">Add</Button>
-                </div>
-                <div className="button-container">
-                  <Button isDisabled={!this.state.loaded} onClick={this.handleSaveContinueItems.bind(this)} appearance="warning">Add and Continue</Button>
-                </div>
+              <div className="button-container">
+                <Button isDisabled={!this.state.loaded} onClick={this.handleEditItem.bind(this)} appearance="warning">Update</Button>
               </div>
+            </div>
+
+          )}
+          {(!this.state.isEdit)  && (
+              <div className="button-row">
+              <div className="button-container">
+                <Button isDisabled={!this.state.loaded} onClick={this.handleSaveItem.bind(this)} appearance="warning">Add</Button>
+              </div>
+              <div className="button-container">
+                <Button isDisabled={!this.state.loaded} onClick={this.handleSaveContinueItems.bind(this)} appearance="warning">Add and Continue</Button>
+              </div>
+            </div>
+
+          )}
           </GridColumn>
+          <GridColumn medium={12}>
+          {(this.state.UploadedImages.length > 0 && this.state.isEdit)  && (
+            <div className="field-div">
+              <span className="field-label">Current Images</span>
+              <div className="image-list">
+                {renderUploadedImageElement}  
+              </div>
+            </div>
+          )}
+          </GridColumn>
+      
+
         </Grid>
       </div>
       </div>

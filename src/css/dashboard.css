@@ -383,6 +383,19 @@ a:hover{
     cursor: pointer;
 }
 
+.delete-image{
+    height: 20px;
+    width: 100%;
+    /* padding: 5px 5px; */
+    line-height: 20px;
+    font-size: 10px;
+    text-align: center;
+    background-color:rgb(240, 87, 87) ;
+    color: white;
+    cursor: pointer;
+}
+
+
 .overlay-loader{
     height: 50em;
     width: 100%;
@@ -411,3 +424,24 @@ a:hover{
     vertical-align: middle;
 }
 /* Add Edit Items Page End */
+
+/* Item Details Page Start */
+.item-details-text{
+    font-size: 16px;
+    line-height: 25px;
+}
+
+.cost-price-container{
+display: flex;
+}
+.cost-price-icon{
+    cursor: pointer;
+    line-height: 12px;
+}
+.cost-price{
+    line-height: 25px;
+}
+
+/* Item Details Page End */
+
+
