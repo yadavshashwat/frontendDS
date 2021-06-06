@@ -22,7 +22,10 @@ export default handleActions({
     },
 
     [actionTypes.FLAG_DISMISS](state){
-        const newFlagList = [...state.flagsList.pop()]
+        var newFlagList = []
+        if (state.flagsList.length > 1){
+            var newFlagList = [...state.flagsList.pop()]
+        }
         return {
             ...state,
             flagsList:newFlagList

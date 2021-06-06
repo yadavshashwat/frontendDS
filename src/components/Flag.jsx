@@ -12,13 +12,13 @@ import { connect } from "react-redux";
 import { bindActionCreators } from "redux";
 import flag from "../redux/actions/flag";
 
-// const color = {
-//     error: colors.R400,
-//     info: colors.N500,
-//     normal: colors.N0,
-//     success: colors.G400,
-//     warning: colors.Y200,
-// };
+const color = {
+    error: colors.R400,
+    info: colors.N500,
+    normal: colors.N0,
+    success: colors.G400,
+    warning: colors.Y200,
+};
 
 
 class AutoDismissFlagCom extends Component{
@@ -36,7 +36,7 @@ class AutoDismissFlagCom extends Component{
                 {this.props.flagsList.map((flag,key) => {
                     return (
                         <AutoDismissFlag
-                            // appearance={""}
+                            // appearance={flag.appearance}
                             id={key}
                             icon={
                                 <SuccessIcon
