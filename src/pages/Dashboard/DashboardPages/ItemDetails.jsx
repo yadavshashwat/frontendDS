@@ -745,7 +745,7 @@ class ItemDetails extends Component {
           </GridColumn>
         </Grid>
         <Grid layout="fluid">
-          <h2>Item Details</h2>
+          <h3>Item Details</h3>
         </Grid>
         <hr></hr>
         <Grid layout="fluid">
@@ -807,7 +807,7 @@ class ItemDetails extends Component {
         </Grid>
         <br></br>
         <Grid layout="fluid">
-          <h2>Listed Vendors</h2>
+          <h3>Listed Vendors</h3>
         </Grid>
         <hr></hr>
         <Grid layout="fluid">        

@@ -49,7 +49,7 @@ export function api(url, method, filters) {
     }).then(response => response.data)
 }
 
-export function imageHandlerApi(url,formData) {
+export function fileHandlerApi(url,formData) {
     return axios({
         method: 'post',
         baseURL: {

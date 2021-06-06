@@ -489,7 +489,7 @@ class Vendors extends Component {
       cells: [
         {
           key: row.id,
-          content: changeCase.titleCase(row.company_name)
+          content: <Link to={"/adminpanel/vendors/" + row.id}><span className="company-name-table">{changeCase.titleCase(row.company_name)}</span></Link>
         },
         {
           key: row.id,

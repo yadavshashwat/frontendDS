@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import "../../../css/dashboard.css"
 
 // Backend Connection
-import { api } from "../../../helpers/api.jsx";
+import { api,fileHandlerApi } from "../../../helpers/api.jsx";
 // Redux 
 import { connect } from "react-redux";
 
@@ -29,7 +29,7 @@ import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import TextArea from '@atlaskit/textarea';
-
+import Dropzone from 'react-dropzone'
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
@@ -38,6 +38,7 @@ import pathIcon from "../../../routing/BreadCrumbIcons"
 import FolderIcon from '@atlaskit/icon/glyph/folder';
 import EditorEditIcon from '@atlaskit/icon/glyph/editor/edit';
 import TrashIcon from '@atlaskit/icon/glyph/trash';
+import DocumentFilledIcon from '@atlaskit/icon/glyph/document-filled';
 // Components
 // import ContentWrapper from '../../../components/ContentWrapper';
 import ItemsPage from "../DashboardPages/ItemManagement"
@@ -77,6 +78,8 @@ var url_vendor = "/v1/vendors/";
 var url_vendoritem = "/v1/vendoritems/";
 var url_vendoritempair = "/v1/vendoritemspair/";
 var url_vendoritempair_post = "/v1/vendoritemspair";
+var url_doc_upload = "/v1/vendordocupload/";
+var url_document_delete = "/v1/vendordocdelete/"
 const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 // var noImagePath = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/other/nothing_image_new.png";
 var noImagePath = "";
@@ -93,6 +96,9 @@ const itemOptions = [
 const deleteConfMessage = "Are you sure you want to delete the vendor Item? Please note that this will not delete any items but will remove vendor from the given item."
 const deleteConfHeader = "Confirm Vendor Item Removal"
 
+const deleteDocConfMessage = "Are you sure you want to delete the vendor document?"
+const deleteDocConfHeader = "Confirm Vendor Document Deletion"
+
 class ItemCategory extends Component {
   constructor(props) {
     super(props);
@@ -100,6 +106,7 @@ class ItemCategory extends Component {
       data: "",
       dataItems: [],
       dataCompare:[],
+      dataDocuments:[],
       // pagination variables
       loaded: false,
       pageNum: 1, //Current page
@@ -118,14 +125,20 @@ class ItemCategory extends Component {
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
+      cityOptions:[],
+      stateOptions:[],
+      sourceOption:[],
       
       // Modal variables
 
       isModalOpen: false,
+      isEditModalOpen: false,
       submitError: "",
       isNew: true,
       activeDataId: "",
       isConfModalOpen:false,
+      fileList:[],
+      dropZoneActive:false
 
     };
   }
@@ -133,6 +146,21 @@ class ItemCategory extends Component {
   hideSearchIcon = () => {
     this.setState({ searchIcon: false });
   };
+
+
+  handleFileDrop = acceptedFiles => {
+    const currentState = this.state.fileList
+    for(var i = 0; i < acceptedFiles.length ; i += 1) {
+      var indexFile = currentState.findIndex(x => x.path === acceptedFiles[i].path);
+      if(indexFile < 0 ){
+        currentState.push(acceptedFiles[i])
+      }
+    }
+    this.setState({
+      fileList:currentState
+    })
+  }
+
 
   showSearchIcon = event => {
     if (event.target.value === "") {
@@ -379,22 +407,43 @@ class ItemCategory extends Component {
     });
   }
 
-  // handleEditModalOpen = event => {
-  //   const data_id = event.currentTarget.dataset.id
-  //   this.setState({ isNew: false, activeDataId: parseInt(data_id,10) });
+  handleFileRemoveClick = event =>{
+    const path = event.currentTarget.dataset.id
+    // console.log(path)
+    var currentState = this.state.fileList
+    var indexFile = currentState.findIndex(x => x.path === path);
+    this.setState({fileList: [
+        ...currentState.slice(0, indexFile),
+        ...currentState.slice(indexFile + 1)
+      ]
+    })
+    
+  }
 
-  //   api(url + '/' + data_id,'get', {}).then(response => {
-  //     const { data, success } = response;
-  //     if (success) {
-  //       this.setState(
-  //         {
-  //           modalData: data,
-  //         }, () => {
-  //           this.setState({ isModalOpen: true });
-  //         });
-  //     }
-  //   });
-  // }
+  handleNewFiles = () => {
+    this.setState({
+      dropZoneActive:true
+    })
+  }
+
+  handleNewFilesClose = () => {
+    this.setState({
+      dropZoneActive:false
+    })
+  }
+
+
+  handleEditModalOpen = event => {
+    this.setState({
+      isEditModalOpen:true
+    })
+  }
+
+  handleEditModalClose = event => {
+    this.setState({
+      isEditModalOpen:false
+    })
+  }
 
 
   handleAddModalOpen = () => {
@@ -418,82 +467,121 @@ class ItemCategory extends Component {
   };
 
   
-  // submitData = data => {
-  //   var submit = true
-  //   const dataList = this.state.data;
-  //   const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-  //   console.log(index)
-  //   const categoryList = this.state.categoryOptions;
-  //   const indexCat = categoryList.findIndex(x => x.value === data.category.value);
-  //   console.log(indexCat)
-  //   // console.log(index)
-  //   if (submit) {
-  //     this.setState({ loaded: false });
-  //     if (this.state.isNew) {
-  //       api(url, 'post' ,{
-  //         category: data.category.value,
-  //         sub_category: data.sub_category,
-  //         description: data.description
-  //       }).then(response => {
-  //         const { data, message, success } = response;
-  //         this.props.actions.addFlag({
-  //           message: message,
-  //           appearance: (success ? "warning" :  "danger")
-  //         });    
-  //         if (success){
-  //           if (indexCat === -1){
-  //             this.setState({
-  //               categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-  //             })
-  //           }            
-  //           this.setState({
-  //             data: [data, ...this.state.data],
-  //             loaded: true
-  //           });
-  //           this.handleModalClose();  
-  //         }else{
-  //           this.setState({
-  //             loaded:true
-  //           })
-  //         }
-  //       });
-  //     }else{
-  //       api(url + '/' + this.state.activeDataId,'put', {
-  //         category: data.category.value,
-  //         sub_category: data.sub_category,
-  //         description: data.description,
-  //       }).then(response => {
-  //         const { data, message, success } = response;
-  //         this.props.actions.addFlag({
-  //           message: message,
-  //           appearance: (success ? "warning" :  "danger")
-  //         });    
-  //         if (success){
-  //           if (indexCat === -1){
-  //             this.setState({
-  //               categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-  //             })
-  //           }
-  //           this.setState({            
-  //             data: [
-  //               ...this.state.data.slice(0, index),
-  //                 data,
-  //               ...this.state.data.slice(index + 1)
-  //             ],
-  //             loaded: true,            
-  //           });
-  //           this.handleModalClose();
-  //         }else{
-  //           this.setState({
-  //             loaded:true
-  //           })
-  //         }
-  //       });
-  //     }
-  //   }
-  // }
+  submitData = data => {
+    var submit = true
+    // const dataList = this.state.data;
+    // const index = dataList.findIndex(x => x.id === this.state.activeDataId);
+    // const sourceList = this.state.sourceOptions;
+    // const indexSource = sourceList.findIndex(x => x.value === data.source.value);
+
+    // console.log(index)
+    if (submit) {
+      this.setState({ loaded: false });
+     
+      api(url_vendor  + this.state.data.id,'put', {
+        company_name: data.company_name,
+        owner_name: data.owner_name,
+        owner_phone: data.owner_phone,
+        contact_name: data.contact_name,
+        contact_phone: data.contact_phone,
+        city: data.city.value,
+        state: data.state.value,
+        address: data.address,
+        pincode: data.pincode,
+        source: data.source.value,
+        email: data.email,
+      }).then(response => {
+        const { data, message, success } = response;
+        this.props.actions.addFlag({
+          message: message,
+          appearance: (success ? "warning" :  "danger")
+        });    
+        if (success){
+          this.setState({            
+            data: data,
+            loaded: true,            
+          });
+          this.handleEditModalClose();
+        }else{
+          this.setState({
+            loaded:true
+          })
+        }
+      });
+      
+    }
+  }
 
 
+  handleDocConfModalOpen = event => {
+    const dataId = event.currentTarget.dataset.id;
+    this.setState({
+      isDocConfModalOpen:true,
+      activeDataId: parseInt(dataId,10)
+    })
+  }
+
+
+  handleDocConfModalClose = () => {
+    this.setState({
+      isDocConfModalOpen:false,
+      activeDataId:""
+    })
+  }
+
+
+  handleDeleteDoc = () =>{
+    const dataId = this.state.activeDataId
+    var currentState = this.state.dataDocuments
+    var indexFile = currentState.findIndex(x => x.id === parseInt(dataId));
+    
+    api(url_document_delete  + dataId, 'delete' ,{}).then(response => {
+    const { message, success } = response;
+    this.props.actions.addFlag({
+      message: message,
+      appearance: (success ? "warning" :  "danger")
+    });    
+    if (success){
+      this.setState({dataDocuments: [
+        ...currentState.slice(0, indexFile),
+        ...currentState.slice(indexFile + 1)
+      ],
+      isDocConfModalOpen:false,
+      activeDataId:""
+    });
+  }
+  })
+  .catch(error => console.log(error))
+}
+
+
+  handleFileUpload = () => {
+    this.setState({
+      loaded:false
+    })
+    const formData = new FormData();
+    for(var i = 0; i < this.state.fileList.length ; i += 1) {
+      formData.append("file", this.state.fileList[i]);          
+    }
+    
+      fileHandlerApi(url_doc_upload + this.state.data.id ,formData)
+      .then(response => {
+        const {data, message, success } = response;
+        this.props.actions.addFlag({
+          message: message,
+          appearance: (success ? "warning" :  "danger")
+        });   
+
+      if (success){
+        this.setState({
+          fileList:[],
+          loaded:true ,
+          dataDocuments:[...this.state.dataDocuments,...data],
+          dropZoneActive:false            
+        });
+        }
+      }).catch(error => console.log(error))
+  }
   // On Load
   componentDidMount() {
     var Path = window.location.pathname.split("/")
@@ -505,7 +593,7 @@ class ItemCategory extends Component {
     let filtersData =  {  is_all: "1" }
 
     api(url_vendor + textPath, 'get', {}).then(response => {
-      const { data,  message, success } = response;
+      const { data,  message, success,filters } = response;
       this.props.actions.addFlag({
         message: message,
         appearance: (success ? "warning" :  "danger")
@@ -513,7 +601,12 @@ class ItemCategory extends Component {
       if (success) {
         this.setState(
           {
-            data: data
+            data: data,
+            dataDocuments:data.document_details,
+            stateOptions: JSON.parse(JSON.stringify(filters.states)),
+            cityOptions: JSON.parse(JSON.stringify(filters.cities)),
+            sourceOptions: JSON.parse(JSON.stringify(filters.source))
+
           }
         );
 
@@ -618,7 +711,54 @@ class ItemCategory extends Component {
         );
       });
     }
+
   
+    let renderUploadedDocuments = null;
+    
+    renderUploadedDocuments = this.state.dataDocuments.map((row, key) => {
+    return (
+            <GridColumn key = {key} medium={4} className="item-grid">
+                  <div className="file-div-showcase">
+                    <div className="file-remove-button" data-id={row.id} 
+                    onClick={this.handleDocConfModalOpen.bind(this)} 
+                    >
+                      <div className="item-remove-icon-container">
+                        <TrashIcon size={'medium'} ></TrashIcon>
+                      </div>
+                    </div>
+                    <a href={row.path} target="_blank">
+                      <div className="file-div-internal">
+                        <div className="file-icon-showcase">
+                          <DocumentFilledIcon></DocumentFilledIcon>
+                        </div>
+                        <div className="file-name-showcase">
+                          {row.friendly_name}
+                        </div>
+                      </div>  
+                    </a>
+                </div>
+            </GridColumn>
+    );
+  });
+
+    let renderDocumentList = null;
+    
+    renderDocumentList = this.state.fileList.map((row, key) => {
+    return (
+            <Grid key = {key}>
+                  <div className="file-div">
+                    <div className="file-div">
+                      <div data-id={row.path}  className="remove-file" onClick={this.handleFileRemoveClick}>
+                        Remove
+                      </div>
+                      <div className="file-name">
+                        {row.name}
+                      </div>
+                    </div>  
+                </div>
+            </Grid>
+    );
+  });
 
 
 
@@ -669,14 +809,14 @@ class ItemCategory extends Component {
           <GridColumn medium={10}></GridColumn>
           <GridColumn medium={2}>
             
-              <Button  appearance="warning">
-              Edit Vendor
+              <Button onClick={this.handleEditModalOpen} appearance="warning">
+                Edit Vendor
               </Button>
             
           </GridColumn>
         </Grid>
         <Grid layout="fluid">
-          <h2>Vendor Details</h2>
+          <h3>Vendor Details</h3>
         </Grid>
         {/* <br></br> */}
         <hr></hr>
@@ -698,12 +838,70 @@ class ItemCategory extends Component {
                 <GridColumn medium={2}><span className="item-details-text"><b>Address</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.address ? titleCase(this.state.data.address + ", "+ this.state.data.city + ", "+ this.state.data.state + ", "+ this.state.data.pincode) : ""}</span></GridColumn>
                 <GridColumn medium={2}><span className="item-details-text"><b>Source</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.source ? titleCase(this.state.data.source) : ""}</span></GridColumn>
               </Grid>
-          </GridColumn>
+            </GridColumn>
+              
+              <GridColumn medium={12}>
+                <br></br>
+              
+              <Grid layout="fluid">
+                <h3>Vendor Documents</h3>
+              </Grid>
+              <hr></hr>      
+              <Grid> {renderUploadedDocuments} </Grid>
+              <Grid>
+              {(this.state.dropZoneActive)  && (
+                  <div className="drop-zone-file-div">
+                  <div className="field-div">
+                        <span className="field-label">Documents</span>
+                        <Dropzone 
+                          onDrop={acceptedFiles => this.handleFileDrop(acceptedFiles)}
+                        >
+                          {({getRootProps, getInputProps}) => (
+                            <section className="drop-container">
+                              <div {...getRootProps({className: 'dropzone'})}>
+                                <input {...getInputProps()} />
+                                  Drag 'n' drop some files here, or click to select files
+                              </div>
+                            </section>
+                          )}
+                  </Dropzone>
+                
+                  </div>
+                    {(this.state.fileList.length > 0)  && (
+                    <div className="document-list">
+                      {renderDocumentList}  
+                      <Button onClick={this.handleFileUpload} appearance="warning">
+                        Upload
+                      </Button>
+                    </div>
+                  
+                  )}
+                </div>
+              )}
+              </Grid>
+              {(!this.state.dropZoneActive)  && (
+              <Grid> 
+                <Button appearance={'info'} onClick={this.handleNewFiles}>
+                  Add New Files
+                </Button>
+              </Grid>
+              )}
+              {(this.state.dropZoneActive)  && (
+              <Grid> 
+                <Button appearance={'info'} onClick={this.handleNewFilesClose}>
+                  Close File Upload
+                </Button>
+              </Grid>
+              )}
+
+              </GridColumn>
+              
+          
         </Grid>
         <br></br>
         <br></br>
         <Grid layout="fluid">
-          <h2>Listed Items</h2>
+          <h3>Listed Items</h3>
         </Grid>
         {/* <br></br> */}
         <hr></hr>
@@ -840,6 +1038,20 @@ class ItemCategory extends Component {
           )}
         </ModalTransition>
         <ModalTransition>
+          {this.state.isDocConfModalOpen && (
+            <Modal autoFocus={false}  actions={
+              [
+                { text: 'Confirmed', appearance: 'warning', onClick: this.handleDeleteDoc },
+                { text: 'Close', appearance: 'normal', onClick: this.handleDocConfModalClose },
+              ]
+            } onClose={this.handleConfModalClose} heading={deleteDocConfHeader}>
+                {deleteDocConfMessage}              
+            </Modal>
+
+          )}
+        </ModalTransition>
+
+        <ModalTransition>
           {this.state.costUpdateModal && (
             <Modal autoFocus={false}  actions={
               [
@@ -873,6 +1085,147 @@ class ItemCategory extends Component {
             </Modal>
           )}
         </ModalTransition>
+        
+        <ModalTransition>
+          {this.state.isEditModalOpen && (
+
+            <Modal autoFocus={false}  width={'80%'}  actions={
+              [
+                { text: 'Close', appearance: 'normal', onClick: this.handleEditModalClose },
+              ]
+            } onClose={this.handleEditModalClose} height={600} heading={"Edit Vendor"}>
+
+              <Form onSubmit={this.submitData}>
+                {({ formProps }) => (
+                  <form {...formProps}>
+                    <Grid>
+                    <GridColumn medium={6}>
+                        <Field name="company_name" defaultValue={this.state.data.company_name}
+                              label="Company Name" 
+                              isRequired>
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="company_email" defaultValue={this.state.data.email}
+                              label="Company Email" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="owner_name" defaultValue={this.state.data.owner_name}
+                              label="Owner Name" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="owner_phone" defaultValue={this.state.data.owner_phone}
+                              label="Owner Phone" 
+                              isRequired>
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="contact_name" defaultValue={this.state.data.contact_name}
+                              label="Other Contact Name" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="contact_phone" defaultValue={this.state.data.contact_phone}
+                              label="Other Contact Phone" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    <GridColumn medium={6}>
+                        <Field name="address" defaultValue={this.state.data.address}
+                              label="Address" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+
+                    <GridColumn medium={3}>
+                        <Field name="city" defaultValue={{ 'value': this.state.data.city, 'label': changeCase.titleCase(this.state.data.city) }}
+                              label="City" 
+                              >
+                          {({ fieldProps }) => <Select options={this.state.cityOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
+                      <GridColumn medium={3}>
+                        <Field name="state" defaultValue={{ 'value': this.state.data.state, 'label': changeCase.titleCase(this.state.data.state) }}
+                              label="State" 
+                              >
+                          {({ fieldProps }) => <Select options={this.state.stateOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
+
+                    <GridColumn medium={4}>
+                        <Field name="pincode" defaultValue={this.state.data.pincode}
+                              label="Pincode" 
+                              >
+                          {({ fieldProps }) => <TextField 
+                          type="number"
+                          // placeholder="eg. Inference" 
+                          {...fieldProps} />}
+                        </Field>
+                    </GridColumn>
+                    
+
+                      <GridColumn medium={8}>
+                        <Field name="source" defaultValue={{ 'value': this.state.data.source, 'label': changeCase.titleCase(this.state.data.source) }}
+                              label="Source" 
+                              >
+                          {({ fieldProps }) => <CreatableSelect options={this.state.sourceOptions} 
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+                    </Grid>
+                    <Grid>
+                      <GridColumn medium={12}>
+                        <br></br>
+                        <span className="invalid">{this.state.submitError}</span>
+                        <br></br>
+                        <Button type="submit" appearance="warning">
+                          Submit
+                      </Button>
+                      </GridColumn>
+                    </Grid>
+                  </form>
+                )}
+              </Form>
+            </Modal>
+
+          )}
+        </ModalTransition>
+        
         </div>
       </div>
     );

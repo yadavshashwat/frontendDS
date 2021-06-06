@@ -7,7 +7,7 @@ import Dropzone from 'react-dropzone'
 import "../../../css/dashboard.css"
 
 // Backend Connection
-import { api,imageHandlerApi } from "../../../helpers/api.jsx";
+import { api,fileHandlerApi } from "../../../helpers/api.jsx";
 // Redux 
 import { connect } from "react-redux";
 
@@ -225,7 +225,7 @@ handleEditItem = () => {
         formData.append("file", this.state.ImageList[i]);          
       }
       if (this.state.ImageList.length > 0){
-        imageHandlerApi(url_image_upload + data.id ,formData)
+        fileHandlerApi(url_image_upload + data.id ,formData)
         .then(response => {
           const {data, message, success } = response;
           this.props.actions.addFlag({
@@ -307,7 +307,7 @@ handleEditItem = () => {
           formData.append("file", this.state.ImageList[i]);          
         }
         if (this.state.ImageList.length > 0){
-          imageHandlerApi(url_image_upload + data.id ,formData)
+          fileHandlerApi(url_image_upload + data.id ,formData)
           .then(response => {
             const { message, success } = response;
             this.props.actions.addFlag({
@@ -640,7 +640,7 @@ handleEditItem = () => {
         </Grid>
         <br></br>
         <Grid layout="fluid">
-          <h2>{this.state.isEdit ? "Edit": "Add"} Item</h2>
+          <h3>{this.state.isEdit ? "Edit": "Add"} Item</h3>
         </Grid>
         <Grid layout="fluid">
           <GridColumn medium={6}>
