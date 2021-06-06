@@ -1,6 +1,5 @@
 // React
 import React, { Component } from 'react';
-import { Link } from 'react-router';
 
 // Styles
 import "../../../css/dashboard.css"
@@ -17,10 +16,9 @@ import flag from "../../../redux/actions/flag";
 // Atlaskit Packages
 import Select from "@atlaskit/select";
 import Button from '@atlaskit/button';
-// import DynamicTable from '@atlaskit/dynamic-table';
+import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
 import { CreatableSelect } from '@atlaskit/select';
-import Lozenge from '@atlaskit/lozenge';
 import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
 import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
@@ -35,8 +33,6 @@ import TextArea from '@atlaskit/textarea';
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
-import FolderIcon from '@atlaskit/icon/glyph/folder';
-import TrashIcon from '@atlaskit/icon/glyph/trash';
 
 // Components
 // import ContentWrapper from '../../../components/ContentWrapper';
@@ -44,39 +40,12 @@ import TrashIcon from '@atlaskit/icon/glyph/trash';
 // Other Packages
 import ReactPaginate from 'react-paginate';
 import styled from "styled-components";
-import ContentLoader from "react-content-loader";
 var changeCase = require("change-case");
 
-const loaderArray = [1,2,3]
-const random = Math.random() * (1 - 0.7) + 0.9;
-
-const MyTextLoader = () => (
-  <ContentLoader
-    speed={2}
-    primaryColor="#f3f3f3"
-    secondaryColor="#ecebeb"
-    className="contentLoaderStyle"
-  >
-    <rect x="0" y="15" rx="5" ry="5" width={100 * random} height="15" />
-    <rect x="0" y="45" rx="5" ry="5" width={200 * random} height="15" />
-  </ContentLoader>
-);
-
-function titleCase(str) {
-  str = str.toLowerCase().split(' ');
-  for (var i = 0; i < str.length; i++) {
-    str[i] = str[i].charAt(0).toUpperCase() + str[i].slice(1); 
-  }
-  return str.join(' ');
-}
-
-
-
 // api url path
-var url = "/v1/items";
+var url = "/v1/users";
 const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
-// var noImagePath = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/other/nothing_image_new.png";
-var noImagePath = "";
+
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
   {'value':20,'label':'20 Items/Page'},
@@ -86,14 +55,15 @@ const itemOptions = [
 ]
 
 const emptyModalData = {
-  "category": "",
-  "description": "",
-  "id": "",
-  "sub_category": ""
+  "first_name": "",
+  "last_name": "",
+  "email": "",
+  "phone_number": "",
+  
 };
 
-const deleteConfMessage = "Are you sure you want to delete the item? Please note that this will delete the said item from all vendors etc."
-const deleteConfHeader = "Confirm Item Deletion"
+const deleteConfMessage = "Are you sure you want to delete the user? "
+const deleteConfHeader = "Confirm user deletion"
 
 class ItemCategory extends Component {
   constructor(props) {
@@ -110,10 +80,8 @@ class ItemCategory extends Component {
       sortByOptions: [],
       orderByOptions: [],
       categoryOptions: [],
-      statusOptions: [],
       searchIcon: true,
       categoryValue: [],
-      statusValue:[],
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
@@ -149,8 +117,7 @@ class ItemCategory extends Component {
       search: this.state.searchValue,
       page_num: 1,
       page_size: this.state.pageSize.value,
-      category: (this.state.categoryValue).map(x => x['value']).join(","),
-      status: (this.state.statusValue).map(x => x['value']).join(",")
+      category: (this.state.categoryValue).map(x => x['value']).join(",")
     };
     let payload = Object.assign({}, payloadData, obj);
     // console.log(payload, "Payload");
@@ -198,14 +165,6 @@ class ItemCategory extends Component {
       this.applyFilter({ category: data, page_num: 1 });
     });
   };
-
-  handleStatusChange = value => {
-    const data = (value).map(x => x['value']).join(",");
-    this.setState({ statusValue: value, pageNum: 1 }, () => {
-      this.applyFilter({ status: data, page_num: 1 });
-    });
-  };
-
 
   toggleOrderBy = () => {
     let orderBy = this.state.orderBy;
@@ -329,17 +288,18 @@ class ItemCategory extends Component {
     const dataList = this.state.data;
     const index = dataList.findIndex(x => x.id === this.state.activeDataId);
     console.log(index)
-    const categoryList = this.state.categoryOptions;
-    const indexCat = categoryList.findIndex(x => x.value === data.category.value);
-    console.log(indexCat)
+    // const categoryList = this.state.categoryOptions;
+    // const indexCat = categoryList.findIndex(x => x.value === data.category.value);
+    // console.log(indexCat)
     // console.log(index)
     if (submit) {
       this.setState({ loaded: false });
       if (this.state.isNew) {
         api(url, 'post' ,{
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone_number: data.phone_number
         }).then(response => {
           const { data, message, success } = response;
           this.props.actions.addFlag({
@@ -347,11 +307,6 @@ class ItemCategory extends Component {
             appearance: (success ? "warning" :  "danger")
           });    
           if (success){
-            if (indexCat === -1){
-              this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-              })
-            }            
             this.setState({
               data: [data, ...this.state.data],
               loaded: true
@@ -365,9 +320,10 @@ class ItemCategory extends Component {
         });
       }else{
         api(url + '/' + this.state.activeDataId,'put', {
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          email: data.email,
+          phone_number: data.phone_number
         }).then(response => {
           const { data, message, success } = response;
           this.props.actions.addFlag({
@@ -375,11 +331,6 @@ class ItemCategory extends Component {
             appearance: (success ? "warning" :  "danger")
           });    
           if (success){
-            if (indexCat === -1){
-              this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-              })
-            }
             this.setState({            
               data: [
                 ...this.state.data.slice(0, index),
@@ -416,10 +367,9 @@ class ItemCategory extends Component {
             data: data,
             loaded: true,
             numPages: num_pages,
-            sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
-            orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
-            categoryOptions: JSON.parse(JSON.stringify(filters.category)),
-            statusOptions: JSON.parse(JSON.stringify(filters.status)),
+            // sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
+            // orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
+            // categoryOptions: JSON.parse(JSON.stringify(filters.category)),
           }
         );
       }
@@ -435,91 +385,96 @@ class ItemCategory extends Component {
       left: 20px;
     `;
 
+
+    const DataWrapper = styled.div`
+      width: 100%;
+      padding-top:15px;
+  `  ;
+
     const SortIconContainer = styled.div`
       margin-top:46px;
       cursor:pointer
   `  ;
 
-
-    let renderBodyElement = null;
-    if (this.state.loaded === true) {
-      renderBodyElement = null;
-      renderBodyElement = this.state.data.map((row, key) => {
-        if (this.props.isVendorAdd){
-          return (
-            <GridColumn key = {key} medium={2} className="item-grid">
-                  <div className="item-div-vendor-add">
-                    <div className="item-div-internal-vendor-add">
-                      <div className="item-image-container-vendor-add">
-                        <img className="item-image-vendor-add" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
-                      </div>
-                      <div className="item-name-vendor-add">
-                        {changeCase.titleCase(row.name)} 
-                        <br></br>
-                        {row.category_details && (
-                          <div className="category-pill">{row.category_details ? titleCase(row.category_details.category + " - " + row.category_details.sub_category): ""}</div>
-                        )}
-                      </div>
-                      <div data-id={row.id} onClick={this.props.existingItems.findIndex(x => x.item_details.id === row.id) >= 0 ? "" : this.props.handleAddItem} className={this.props.existingItems.findIndex(x => x.item_details.id === row.id) >= 0 ? "" : "add-remove-toggle-add"}>
-                        {this.props.existingItems.findIndex(x => x.item_details.id === row.id) >= 0 ? "" : "Add"}
-                      </div>
-                    </div>  
-                </div>
-            </GridColumn>
-    );
-    }else{
-          return (
-            <GridColumn key = {key} medium={2} className="item-grid">
-    
-                  <div className="item-div">
-                    <div className="item-div-internal">
-                        <div className="item-remove-button" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
-                          <div className="item-remove-icon-container">
-                            <TrashIcon size={'medium'} ></TrashIcon>
-                          </div>
-                        </div>
-                    <Link to={"/adminpanel/items/" + row.id}>
-                      <div className="item-image-container">
-                        <img className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
-                      </div>
-                      <div className="item-name">
-                        {changeCase.titleCase(row.name)} 
-                        <br></br>
-                        {row.category_details && (
-                          <div className="category-pill">{row.category_details ? titleCase(row.category_details.category + " - " + row.category_details.sub_category): ""}</div>
-                        )}
-                      </div>
-                      </Link>
-                    </div>  
-                </div>
-                
-            </GridColumn>
-    );
-
-        }
-
-      });
-    } else {
-      renderBodyElement = loaderArray.map((row, key) => {
-        return (
-                <GridColumn key={key} medium={2} className="item-grid">
-                      <div className="item-div">
-                        <div className="item-div-internal">
-                          <div className="item-image-container">
-                          </div>
-                          <div className="item-name">
-                            <MyTextLoader/>
-                          </div>
-                        </div>  
-                    </div>
-
-                </GridColumn>
-        );
-      });
+    const head = {
+      cells: [
+        {
+          key: "first_name",
+          content: "First Name",
+          width: 20,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "last_name",
+          content: "Last Name",
+          width: 20,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "email",
+          content: "Email",
+          width: 20,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "phone_numer",
+          content: "Phone Number",
+          width: 20,
+          isSortable: false,
+          shouldTruncate: false
+        },
+        {
+          key: "operations",
+          content: "Operations",
+          width: 20,
+          isSortable: false,
+          shouldTruncate: false
+        },
+      ]
     }
-  
 
 
+    let rowRenderElement = null;
+    // if (this.state.loaded) {
+    rowRenderElement = this.state.data.map((row, index) => ({
+      key: `row.id`,
+      cells: [
+        {
+          key: row.id,
+          content: changeCase.titleCase(row.first_name)
+        },
+        {
+          key: row.id,
+          content: changeCase.titleCase(row.last_name)
+        },
+        {
+          key: row.id,
+          content: row.email
+        },
+        {
+          key: row.id,
+          content: row.phone_number
+        },
+        {
+          key: row.id,
+          content: <DropdownMenu
+            trigger="Options"
+            triggerType="button"
+            shouldFlip={false}
+            position="bottom"
+          >
+            <DropdownItemGroup key={row.id}>
+              <DropdownItem data-id={row.id} onClick={this.handleEditModalOpen.bind(this)}>Edit</DropdownItem>
+              <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Delete</DropdownItem>
+            </DropdownItemGroup>
+          </DropdownMenu>
+        },
+      ]
+    }
+    ));
 
     let breadCrumbElement = null
     var Path = window.location.pathname.split("/")
@@ -539,6 +494,7 @@ class ItemCategory extends Component {
       }
       
     });  
+
     let orderByIcon = <SortIconContainer><ArrowUpCircleIcon></ArrowUpCircleIcon></SortIconContainer>
     if (this.state.orderBy === "asc") {
       orderByIcon = <SortIconContainer><ArrowUpCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowUpCircleIcon></SortIconContainer>
@@ -547,7 +503,7 @@ class ItemCategory extends Component {
     }
     return (
       <div>
-          {(!this.state.loaded)  && (
+                {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
                 <img className="loader-image" src={loaderURL}></img>
@@ -555,24 +511,18 @@ class ItemCategory extends Component {
           </div>
         )}
 
-      <div className="dashboard-page">
-        {!this.props.isVendorAdd && (
+        <div className="dashboard-page">
         <Grid layout="fluid">
                 <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
         </Grid>
-        )}
-        {!this.props.isVendorAdd && (
         <Grid layout="fluid">
           <GridColumn medium={10}></GridColumn>
           <GridColumn medium={2}>
-            <Link to={'/adminpanel/items/add-item'}>
-              <Button appearance="warning">
-                Add Item
-              </Button>
-          </Link>
+          <Button onClick={this.handleAddModalOpen} appearance="warning">
+            Add Member
+          </Button>
           </GridColumn>
         </Grid>
-        )}
         <Grid layout="fluid">
           <GridColumn medium={2}>
             <div className="field-div">
@@ -591,31 +541,7 @@ class ItemCategory extends Component {
               />
             </div>
           </GridColumn>
-          <GridColumn medium={4}>
-            <div className="field-div">
-              <span className="field-label">Category</span>
-              <CheckboxSelect
-                className="checkbox-select"
-                classNamePrefix="select"
-                options={this.state.categoryOptions}
-                placeholder="Categories"
-                onChange={this.handleCategoryChange}
-                value={this.state.categoryValue}
-              />
-            </div>
-          </GridColumn>
-          <GridColumn medium={3}>
-            <div className="field-div">
-              <span className="field-label">Status</span>
-              <CheckboxSelect
-                className="checkbox-select"
-                classNamePrefix="sele"
-                options={this.state.statusOptions}
-                placeholder="Status"
-                onChange={this.handleStatusChange}
-                value={this.state.statusValue}
-              />
-            </div>
+          <GridColumn medium={7}>
           </GridColumn>
           <GridColumn medium={2}>
             <div className="field-div">
@@ -636,42 +562,84 @@ class ItemCategory extends Component {
           </GridColumn>
         </Grid>
         <Grid layout="fluid">
-          {renderBodyElement}  
-        </Grid>            
-        <Grid layout="fluid">
-          <GridColumn medium={10}>
-          {(this.state.loaded && this.state.numPages > 1) && (
-          <ReactPaginate
-            previousLabel={'<'}
-            nextLabel={'>'}
-            breakLabel={'...'}
-            breakClassName={'break-me'}
-            pageCount={this.state.numPages}
-            marginPagesDisplayed={2}
-            pageRangeDisplayed={5}
-            onPageChange={this.handlePageClick}
-            containerClassName={'pagination'}
-            previousClassName={'pagination-next'}
-            nextClassName={'pagination-next'}
-            subContainerClassName={'pages-pagination'}
-            activeClassName={'active'}
-            forcePage={this.state.pageNum - 1}
-          />
-          )}
-          </GridColumn>
-          <GridColumn medium={2}>            
-          <div className="field-div-pagination">
-          <Select
-            name="numItems"
-            options={itemOptions}
-            // placeholder="4,5,6..."
-            onChange={this.handleNumItemsChange}
-            value={this.state.pageSize}
-          />
-          </div>
-          </GridColumn>
-        </Grid>  
+          <DataWrapper>
+          {/* <Grid>
+                <GridColumn medium={12}>
+                {(this.state.loaded && this.state.numPages > 1) && (
+                <ReactPaginate
+                  previousLabel={'<'}
+                  nextLabel={'>'}
+                  breakLabel={'...'}
+                  breakClassName={'break-me'}
+                  pageCount={this.state.numPages}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={5}
+                  onPageChange={this.handlePageClick}
+                  containerClassName={'pagination'}
+                  previousClassName={'pagination-next'}
+                  nextClassName={'pagination-next'}
+                  subContainerClassName={'pages-pagination'}
+                  activeClassName={'active'}
+                  forcePage={this.state.pageNum - 1}
+                />
+                )}
+                </GridColumn>
+                <GridColumn medium={2}>            
+                <div className="field-div-pagination">
+                <Select
+                  name="numItems"
+                  options={itemOptions}
+                  // placeholder="4,5,6..."
+                  onChange={this.handleNumItemsChange}
+                  value={this.state.pageSize}
+                />
+                </div>
+                </GridColumn>
+              </Grid>
+              <br></br> */}
+            <DynamicTable
+              isLoading={!this.state.loaded}
+              head={head}
+              rows={rowRenderElement}
+              defaultPage={1}
+              className="user-table"
+            />
           
+          <Grid>
+                <GridColumn medium={10}>
+                {(this.state.loaded && this.state.numPages > 1) && (
+                <ReactPaginate
+                  previousLabel={'<'}
+                  nextLabel={'>'}
+                  breakLabel={'...'}
+                  breakClassName={'break-me'}
+                  pageCount={this.state.numPages}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={5}
+                  onPageChange={this.handlePageClick}
+                  containerClassName={'pagination'}
+                  previousClassName={'pagination-next'}
+                  nextClassName={'pagination-next'}
+                  subContainerClassName={'pages-pagination'}
+                  activeClassName={'active'}
+                  forcePage={this.state.pageNum - 1}
+                />
+                )}
+                </GridColumn>
+                <GridColumn medium={2}>            
+                <div className="field-div-pagination">
+                <Select
+                  name="numItems"
+                  options={itemOptions}
+                  // placeholder="4,5,6..."
+                  onChange={this.handleNumItemsChange}
+                  value={this.state.pageSize}
+                />
+                </div>
+                </GridColumn>
+              </Grid>  
+          </DataWrapper>
+        </Grid>
         <ModalTransition>
           {this.state.isModalOpen && (
 
@@ -679,42 +647,51 @@ class ItemCategory extends Component {
               [
                 { text: 'Close', appearance: 'normal', onClick: this.handleModalClose },
               ]
-            } onClose={this.handleModalClose} height={475} heading={(this.state.isNew ? "Add" : "Edit") + " Item Category"}>
+            } onClose={this.handleModalClose} height={475} heading={(this.state.isNew ? "Add" : "Edit") + " Member"}>
 
               <Form onSubmit={this.submitData}>
                 {({ formProps }) => (
                   <form {...formProps}>
                     <Grid>
                     <GridColumn medium={12}>
-                        <Field name="category" defaultValue={{ 'value': this.state.modalData.category, 'label': changeCase.titleCase(this.state.modalData.category) }}
-                              label="Item Category" 
+                        <Field name="first_name" defaultValue={this.state.modalData.first_name}
+                              label="First Name" 
                               isRequired>
-                          {({ fieldProps }) => <CreatableSelect options={this.state.categoryOptions} 
+                          {({ fieldProps }) => <TextField
                           // placeholder="eg. Sentence Correction"
                            {...fieldProps} />}
                         </Field>
                       </GridColumn>
                       <GridColumn medium={12}>
-                        <Field name="sub_category" defaultValue={this.state.modalData.sub_category}
-                              label="Sub Category" 
+                        <Field name="last_name" defaultValue={this.state.modalData.last_name}
+                              label="Last Name" 
                               isRequired>
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
+                          {({ fieldProps }) => <TextField
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
                         </Field>
                       </GridColumn>
                       <GridColumn medium={12}>
-                        <Field name="description"
-                            defaultValue={this.state.modalData.description}
-                            label="Category Description"                            
-                            // isRequired
-                            >
-                          {({ fieldProps }) => <TextArea
-                          minimumRows = {3} 
-                          // placeholder="eg. Inference are topics which require xyz" 
-                          {...fieldProps} />}
+                        <Field name="email" defaultValue={this.state.modalData.email}
+                              label="Email" 
+                              isRequired>
+                          {({ fieldProps }) => <TextField
+                          type="email"
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
                         </Field>
                       </GridColumn>
+                      <GridColumn medium={12}>
+                        <Field name="phone_number" defaultValue={this.state.modalData.phone_number}
+                              label="Phone Number" 
+                              isRequired>
+                          {({ fieldProps }) => <TextField
+                          type="number"
+                          // placeholder="eg. Sentence Correction"
+                           {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
                     </Grid>
                     <Grid>
                       <GridColumn medium={12}>

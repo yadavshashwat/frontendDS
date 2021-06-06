@@ -50,20 +50,13 @@ function titleCase(str) {
   return str.join(' ');
 }
 
-function getMeta(url){   
-  var img = new Image();
-  img.addEventListener("load", function(){
-      console.log(this.naturalWidth)
-      return ({'width': this.naturalWidth,'height': this.naturalHeight });
-  });
-  img.src = url;
-}
 
 // api url path
 
 var url_itemvendor = "/v1/itemvendors/";
 var url_item = "/v1/items/";
 var url_vendoritempair = "/v1/vendoritemspair/";
+const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
@@ -87,6 +80,19 @@ const emptyModalData = {
         "company_name": "",
         "email": ""
     }
+
+const status_dict = {
+  'to_be_updated':'To Be Updated',
+  'rejected':'Rejected',
+  'shortlisted':'Shortlisted',
+  'ready':'Ready',
+}
+
+const statusOptions = [{'value':'to_be_updated','label':'To Be Updated'},
+                       {'value':'rejected','label':'Rejected'},
+                       {'value':'shortlisted','label':'Shortlisted'},
+                       {'value':'ready','label':'Ready'}
+                      ]
 const deleteConfMessage = "Are you sure you want to remove the vendor? Please note that this will not delete the vendor but will remove this vendor the items."
 const deleteConfHeader = "Confirm Vendor Removal"
 
@@ -127,7 +133,9 @@ class ItemDetails extends Component {
       modalData: emptyModalData,
       activeDataId: "",
       isConfModalOpen:false,
-      costUpdateModal:false
+      costUpdateModal:false,
+      isStatusUpdate:false,
+      statusValue:""
 
     };
   }
@@ -141,7 +149,6 @@ class ItemDetails extends Component {
       this.setState({ searchIcon: true });
     }
   };
-
 
   applyFilter = obj => {
     this.setState({ loaded: false });
@@ -194,6 +201,10 @@ class ItemDetails extends Component {
     });
   };
 
+  handleStatusValueChange = value => {
+    this.setState({ statusValue: value })
+  };
+
   handleCityChange = value => {
     const data = (value).map(x => x['value']).join(",");
     this.setState({ cityValue: value, pageNum: 1 }, () => {
@@ -208,8 +219,6 @@ class ItemDetails extends Component {
     });
   };
 
-
-
   toggleOrderBy = () => {
     let orderBy = this.state.orderBy;
     let toggle = orderBy === "asc" ? "desc" : "asc";
@@ -220,8 +229,6 @@ class ItemDetails extends Component {
       });
     }
   };
-
-
 
   handleSearchChange = event => {
     const data = event.target.value
@@ -276,6 +283,35 @@ class ItemDetails extends Component {
     });
   }
 
+  handleStatusChange = () => {
+    this.setState({
+      isStatusUpdate:true
+    })
+  }
+
+  handleCloseStatus = () => {
+    this.setState({
+      isStatusUpdate:false
+    })
+  }
+
+  handleUpdateStatus = () => {
+    api(url_item  + this.state.data.id, 'put' ,{'name': this.state.data.name, 'status':this.state.statusValue.value})
+  .then(response => {
+    const { data, message, success } = response;
+      this.props.actions.addFlag({
+        message: message,
+        appearance: (success ? "warning" :  "danger")
+      });    
+      if (success){
+        this.setState({            
+          data:data,
+          loaded: true,  
+          isStatusUpdate:false  
+        });
+      }
+  })
+}
 
 
   handleEditorIconClick = event => {
@@ -476,7 +512,8 @@ class ItemDetails extends Component {
         this.setState(
           {
             ImageList:IMAGES,
-            data: data
+            data: data,
+            statusValue:{'value':data.status,'label':status_dict[data.status]}
           }
         );
 
@@ -617,7 +654,7 @@ class ItemDetails extends Component {
             position="bottom"
           >
             <DropdownItemGroup key={row.vendor_details.id}>
-              <Link to={""}><DropdownItem data-id={row.vendor_details.id}>Open</DropdownItem></Link>
+              <Link to={"/adminpanel/vendors/" + row.vendor_details.id}><DropdownItem data-id={row.vendor_details.id}>Open</DropdownItem></Link>
               <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Remove</DropdownItem>
             </DropdownItemGroup>
           </DropdownMenu>
@@ -684,6 +721,15 @@ class ItemDetails extends Component {
       orderByIcon = <SortIconContainer><ArrowDownCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowDownCircleIcon></SortIconContainer>
     }
     return (
+      <div>
+                {(!this.state.loaded)  && (
+          <div className="overlay-loader">
+            <div className="loader-container">
+                <img className="loader-image" src={loaderURL}></img>
+            </div>
+          </div>
+        )}
+
       <div className="dashboard-page">
         <Grid layout="fluid">
                 <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
@@ -701,7 +747,7 @@ class ItemDetails extends Component {
         <Grid layout="fluid">
           <h2>Item Details</h2>
         </Grid>
-        <br></br>
+        <hr></hr>
         <Grid layout="fluid">
           <GridColumn medium={6}>
               <Grid >
@@ -722,6 +768,38 @@ class ItemDetails extends Component {
               <Grid >
                 <GridColumn medium={2}><span className="item-details-text"><b>Selling Price</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.sell_price? ("₹ " + this.state.data.sell_price) : ""}</span></GridColumn>
               </Grid>
+              <Grid >
+                <GridColumn medium={2}><span className="item-details-text"><b>Status</b></span></GridColumn> 
+                {this.state.isStatusUpdate && (
+                  
+                <GridColumn medium={4} className="status-update-button-row"> 
+                  <Select
+                  className="single-select"
+                  classNamePrefix="react-select"
+                  options={statusOptions}
+                  placeholder="Status"
+                  value={this.state.statusValue}
+                  onChange={this.handleStatusValueChange}
+                />
+                <Button appearance={"warning"} onClick={this.handleUpdateStatus}>
+                  Update
+                </Button>
+                <Button appearance={"info"} onClick={this.handleCloseStatus}>
+                  Close
+                </Button>
+
+                </GridColumn>
+                )}
+                {!this.state.isStatusUpdate && (
+                <GridColumn medium={4}><span className="item-details-text">: {this.state.data.status ? status_dict[this.state.data.status] : ""}</span>
+                &nbsp;&nbsp;&nbsp;&nbsp;<Button appearance={"info"} onClick={this.handleStatusChange}>
+                  Change
+                </Button>
+          </GridColumn>
+
+                )}
+              </Grid>
+
           </GridColumn>
           <GridColumn medium={6}>
             <Gallery enableImageSelection={false} images={this.state.ImageList}/>,
@@ -731,7 +809,7 @@ class ItemDetails extends Component {
         <Grid layout="fluid">
           <h2>Listed Vendors</h2>
         </Grid>
-        <br></br>
+        <hr></hr>
         <Grid layout="fluid">        
           <GridColumn medium={2}>
             <div className="field-div">
@@ -913,7 +991,7 @@ class ItemDetails extends Component {
         </ModalTransition>
 
       </div>
-
+      </div>
     );
   }
 }

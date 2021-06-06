@@ -45,7 +45,7 @@ var changeCase = require("change-case");
 
 // api url path
 var url = "/v1/itemcats";
-
+const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
   {'value':20,'label':'20 Items/Page'},
@@ -498,6 +498,15 @@ class ItemCategory extends Component {
       orderByIcon = <SortIconContainer><ArrowDownCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowDownCircleIcon></SortIconContainer>
     }
     return (
+      <div>
+        {(!this.state.loaded)  && (
+          <div className="overlay-loader">
+            <div className="loader-container">
+                <img className="loader-image" src={loaderURL}></img>
+            </div>
+          </div>
+        )}
+  
       <div className="dashboard-page">
         <Grid layout="fluid">
                 <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
@@ -715,7 +724,7 @@ class ItemCategory extends Component {
           )}
         </ModalTransition>
       </div>
-
+      </div>
     );
   }
 }

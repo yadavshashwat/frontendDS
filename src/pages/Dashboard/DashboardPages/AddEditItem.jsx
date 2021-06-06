@@ -70,7 +70,8 @@ class AddEditItem extends Component {
       ItemSellingPriceValid:true,
       ImageList:[],
       UploadedImages:[],
-      itemID: ""
+      itemID: "",
+      isVendorAdd:false,
     };
     this.defaultState = this.state;
 
@@ -393,14 +394,20 @@ handleEditItem = () => {
     var Path = window.location.pathname.split("/")
     var edit = false
     var itemID = Path[3]
-
+    var vendorAdd = false
     if(Path[4] === "edit-item"){
       this.setState({
         isEdit:true,
         itemID: itemID
       })
       edit = true
-    }
+    } else if (Path[4]==="add-item" && Path[2]=== "vendors") {
+      this.setState({
+        isVendorAdd:true
+      })
+      vendorAdd = true
+    } 
+
     // console.log(Path[3],Path[4],itemID)
     if (edit){
       api(url_items + '/' + itemID, 'get', {}).then(response => {
@@ -438,17 +445,18 @@ handleEditItem = () => {
                 if (success){
                   var vendorOptions = []        
                   var updatedData = JSON.parse(JSON.stringify(data));
+                  
                   for(var i = 0; i < updatedData.length ; i += 1) {
                       var value = updatedData[i]['id']
                       var label = titleCase(updatedData[i]['company_name'])
                       vendorOptions.push({'value':value,'label':label})
                   }
-                  
                   this.setState(
                     {
                       vendorOptions: vendorOptions,
                     }
-                  );
+                  );  
+
                   api(url_itemvendor + itemID, 'get', {}).then(response => {
                     const { data, success } = response;
                     if(success){
@@ -484,6 +492,7 @@ handleEditItem = () => {
         if (success) {
           var categoryOptions = []        
           var updatedData = JSON.parse(JSON.stringify(data));
+          var selectedVendor = []
           for(var i = 0; i < updatedData.length ; i += 1) {
               var value = updatedData[i]['id']
               var label = titleCase(updatedData[i]['category'] + ' - ' +updatedData[i]['sub_category'])
@@ -503,14 +512,28 @@ handleEditItem = () => {
                   var value = updatedData[i]['id']
                   var label = titleCase(updatedData[i]['company_name'])
                   vendorOptions.push({'value':value,'label':label})
+                  if (vendorAdd && updatedData[i]['id'] == parseInt(Path[3])){
+                    selectedVendor = [{'value':value,'label':label}]
+                  }
+
               }
-              
-              this.setState(
-                {
-                  loaded: true,
-                  vendorOptions: vendorOptions,
-                }
-              );
+              if (vendorAdd){
+                this.setState(
+                  {
+                    vendorOptions: vendorOptions,
+                    vendorValue:selectedVendor,
+                    loaded: true
+                  }
+                );  
+              }else{
+                this.setState(
+                  {
+                    vendorOptions: vendorOptions,
+                    loaded: true
+                  }
+                );  
+              }
+          
             }});
 
         
@@ -569,12 +592,23 @@ handleEditItem = () => {
       if (index > 1 && index < (Path.length)){
         if(this.state.isEdit){
           if(index === 3){
-            var textPath = changeCase.titleCase(this.state.itemNameValue)  
+            var textPath = changeCase.titleCase(this.state.itemNameValue)              
           }else{
             var textPath = changeCase.titleCase(Path[index])
           }  
         }else{
-          var textPath = changeCase.titleCase(Path[index])
+
+          if(index === 3){
+            if (Path[2] === "vendors"){
+              console.log(Path[2])
+              var textPath = changeCase.titleCase(this.state.vendorValue.length > 0 ? this.state.vendorValue[0].label : "")  
+            }else{
+              var textPath = changeCase.titleCase(Path[index])
+            }
+          }else{
+            var textPath = changeCase.titleCase(Path[index])
+          }  
+          // var textPath = changeCase.titleCase(Path[index])
         }
         
         var link =  (Path.slice(0,index + 1).join("/"))
@@ -682,6 +716,7 @@ handleEditItem = () => {
                   classNamePrefix="select"
                   options={this.state.vendorOptions}
                   placeholder="Vendors"
+                  isDisabled={this.state.isVendorAdd}
                   onChange={this.handleVendorChange}
                   value={this.state.vendorValue}
                 />
@@ -719,9 +754,8 @@ handleEditItem = () => {
                 <Button isDisabled={!this.state.loaded} onClick={this.handleEditItem.bind(this)} appearance="warning">Update</Button>
               </div>
             </div>
-
           )}
-          {(!this.state.isEdit)  && (
+          {(!this.state.isEdit && !this.state.isVendorAdd)  && (
               <div className="button-row">
               <div className="button-container">
                 <Button isDisabled={!this.state.loaded} onClick={this.handleSaveItem.bind(this)} appearance="warning">Add</Button>
@@ -732,6 +766,15 @@ handleEditItem = () => {
             </div>
 
           )}
+          {(!this.state.isEdit && this.state.isVendorAdd)  && (
+              <div className="button-row">
+              <div className="button-container">
+                <Button isDisabled={!this.state.loaded} onClick={this.handleSaveContinueItems.bind(this)} appearance="warning">Add</Button>
+              </div>
+            </div>
+
+          )}
+
           </GridColumn>
           <GridColumn medium={12}>
           {(this.state.UploadedImages.length > 0 && this.state.isEdit)  && (
@@ -743,8 +786,6 @@ handleEditItem = () => {
             </div>
           )}
           </GridColumn>
-      
-
         </Grid>
       </div>
       </div>

@@ -15,12 +15,14 @@ import Items from "../pages/Dashboard/DashboardPages/ItemManagement.jsx";
 import AddEditItems from "../pages/Dashboard/DashboardPages/AddEditItem";
 import VendorManagement from "../pages/Dashboard/DashboardPages/VendorManagement";
 import ItemDetails from "../pages/Dashboard/DashboardPages/ItemDetails";
+import VendorDetails from "../pages/Dashboard/DashboardPages/VendorDetails";
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
 import SignOutIcon from '@atlaskit/icon/glyph/sign-out';
 import TrayIcon from '@atlaskit/icon/glyph/tray';
 import MarketplaceIcon from '@atlaskit/icon/glyph/marketplace';
+import StaffManagement from "../pages/Dashboard/DashboardPages/StaffManagement.jsx";
 
 const basePath = ""
 const Routes = [
@@ -35,6 +37,14 @@ const Routes = [
     pageType:"dashboard",
     viewLevel:2,
     navbarDisplayName: "Item Details",
+    navbarIcon:TrayIcon
+  },
+  {
+    path:  basePath +  "/adminpanel/vendors/:vendorid/add-item",
+    component: AddEditItems,
+    pageType:"dashboard",
+    viewLevel:2,
+    navbarDisplayName: "Vendor Details",
     navbarIcon:TrayIcon
   },
 
@@ -64,7 +74,14 @@ const Routes = [
     navbarDisplayName: "Item Details",
     navbarIcon:TrayIcon
   },
-
+  {
+    path:  basePath +  "/adminpanel/vendors/:vendorid",
+    component: VendorDetails,
+    pageType:"dashboard",
+    viewLevel:2,
+    navbarDisplayName: "Vendor Management",
+    navbarIcon:MarketplaceIcon
+  },
   {
     path:  basePath +  "/adminpanel/vendors",
     component: VendorManagement,
@@ -90,6 +107,16 @@ const Routes = [
     navbarDisplayName: "Settings",
     navbarIcon:GearIcon
   },
+  {
+    path:  basePath +  "/adminpanel/settings/staff-management",
+    component: StaffManagement,
+    pageType:"dashboard",
+    viewLevel:2,
+    redirect:false,
+    navbarDisplayName: "Settings",
+    navbarIcon:GearIcon
+  },
+
   {
     path:  basePath +  "/adminpanel/logout",
     component: Logout,

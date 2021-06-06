@@ -1,6 +1,6 @@
 // React
 import React, { Component } from 'react';
-
+import { Link } from 'react-router';
 // Styles
 import "../../../css/dashboard.css"
 
@@ -53,7 +53,7 @@ function titleCase(str) {
 
 // api url path
 var url = "/v1/vendors";
-
+const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 const itemOptions = [
   {'value':10,'label':'10 Items/Page'},
   {'value':20,'label':'20 Items/Page'},
@@ -512,6 +512,7 @@ class Vendors extends Component {
             position="bottom"
           >
             <DropdownItemGroup key={row.id}>
+              <Link to={"/adminpanel/vendors/" + row.id}><DropdownItem data-id={row.id}>Open</DropdownItem></Link>
               <DropdownItem data-id={row.id} onClick={this.handleEditModalOpen.bind(this)}>Edit</DropdownItem>
               <DropdownItem data-id={row.id} onClick={this.handleConfModalOpen.bind(this)}>Delete</DropdownItem>
             </DropdownItemGroup>
@@ -547,6 +548,15 @@ class Vendors extends Component {
       orderByIcon = <SortIconContainer><ArrowDownCircleIcon onClick={this.toggleOrderBy} className="sortIcon"></ArrowDownCircleIcon></SortIconContainer>
     }
     return (
+      <div>
+                {(!this.state.loaded)  && (
+          <div className="overlay-loader">
+            <div className="loader-container">
+                <img className="loader-image" src={loaderURL}></img>
+            </div>
+          </div>
+        )}
+
       <div className="dashboard-page">
         <Grid layout="fluid">
                 <BreadcrumbsStateless>{breadCrumbElement}</BreadcrumbsStateless>
@@ -784,7 +794,7 @@ class Vendors extends Component {
                     <GridColumn medium={3}>
                         <Field name="city" defaultValue={{ 'value': this.state.modalData.city, 'label': changeCase.titleCase(this.state.modalData.city) }}
                               label="City" 
-                              isRequired>
+                              >
                           {({ fieldProps }) => <Select options={this.state.cityOptions} 
                           // placeholder="eg. Sentence Correction"
                            {...fieldProps} />}
@@ -794,7 +804,7 @@ class Vendors extends Component {
                       <GridColumn medium={3}>
                         <Field name="state" defaultValue={{ 'value': this.state.modalData.state, 'label': changeCase.titleCase(this.state.modalData.state) }}
                               label="State" 
-                              isRequired>
+                              >
                           {({ fieldProps }) => <Select options={this.state.stateOptions} 
                           // placeholder="eg. Sentence Correction"
                            {...fieldProps} />}
@@ -817,7 +827,7 @@ class Vendors extends Component {
                       <GridColumn medium={8}>
                         <Field name="source" defaultValue={{ 'value': this.state.modalData.source, 'label': changeCase.titleCase(this.state.modalData.source) }}
                               label="Source" 
-                              isRequired>
+                              >
                           {({ fieldProps }) => <CreatableSelect options={this.state.sourceOptions} 
                           // placeholder="eg. Sentence Correction"
                            {...fieldProps} />}
@@ -855,7 +865,7 @@ class Vendors extends Component {
           )}
         </ModalTransition>
       </div>
-
+      </div>
     );
   }
 }
