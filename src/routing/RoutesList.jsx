@@ -26,6 +26,7 @@ import StaffManagement from "../pages/Dashboard/DashboardPages/StaffManagement.j
 
 const basePath = ""
 const Routes = [
+  
   {
     pageType:"login",
     path:  basePath +  "/adminpanel",
@@ -126,7 +127,11 @@ const Routes = [
     navbarDisplayName: "Logout",
     navbarIcon:SignOutIcon
   },
-
+  {
+    pageType:"login",
+    path:  "/",
+    component: LoginPage,
+  },
 
 
   // {
