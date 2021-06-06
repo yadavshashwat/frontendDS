@@ -8,7 +8,7 @@ let baseurl = null;
 if (window.location.hostname === "localhost"){
     baseurl = "http://localhost:8000/api/";
 }else{
-    baseurl = "http://thedecorshop.in/api/";
+    baseurl = "http://www.thedecorshop.in/api/";
 }
 
 
