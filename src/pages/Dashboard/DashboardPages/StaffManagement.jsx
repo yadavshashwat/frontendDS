@@ -367,8 +367,8 @@ class ItemCategory extends Component {
             data: data,
             loaded: true,
             numPages: num_pages,
-            // sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
-            // orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
+            sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
+            orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
             // categoryOptions: JSON.parse(JSON.stringify(filters.category)),
           }
         );

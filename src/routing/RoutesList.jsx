@@ -5,7 +5,7 @@
 // import QuestionBankSubFolderSelect from "../pages/QuestionBankSubFolderSelect";
 // import QuestionManagement from "../pages/QuestionManagement";
 // import QuestionBankManagement from "../pages/QuestionBankManagement";
-// import ForgetPassword from "../pages/ForgetPassword";
+
 
 import LoginPage from "../pages/LoginPage.jsx";
 import Logout from "../pages/Logout.jsx";
@@ -16,6 +16,7 @@ import AddEditItems from "../pages/Dashboard/DashboardPages/AddEditItem";
 import VendorManagement from "../pages/Dashboard/DashboardPages/VendorManagement";
 import ItemDetails from "../pages/Dashboard/DashboardPages/ItemDetails";
 import VendorDetails from "../pages/Dashboard/DashboardPages/VendorDetails";
+import ForgetPassword from "../pages/ForgetPassword";
 
 // icons import
 import GearIcon from '@atlaskit/icon/glyph/settings';
@@ -133,16 +134,15 @@ const Routes = [
     component: LoginPage,
   },
 
-
-  // {
-  //   path:  basePath +  "/adminpanel/passreset/:secstring/",
-  //   component: ForgetPassword,
-  //   pageType:"course",
-  //   viewLevel:1,
-  //   redirect:false,
-  //   navbarDisplayName: "Test Usage",
-  //   // navbarIcon:VidConnectionCircleIcon
-  // },
+  {
+    path:  basePath +  "/adminpanel/passreset/:secstring",
+    component: ForgetPassword,
+    pageType:"passoword Reset",
+    viewLevel:1,
+    // redirect:false,
+    // navbarDisplayName: "Test Usage",
+    // navbarIcon:VidConnectionCircleIcon
+  },
 
   // // Question Management Paths
   // {

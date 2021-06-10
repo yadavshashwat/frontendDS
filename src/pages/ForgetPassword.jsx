@@ -25,7 +25,7 @@ import Button from '@atlaskit/button';
 import Cookies from 'universal-cookie';
 // import { Router, Route, Redirect, browserHistory  } from 'react-router';
 
-const url="/user/reset_pass_user/";
+const url="/v1/user/reset";
 
 class LoginPage extends Component {
   static contextTypes = {
@@ -65,49 +65,49 @@ class LoginPage extends Component {
 
   handleReset = () => {
     var Path = window.location.pathname.split("/")
-    var secString = Path[4]
+    var secString = Path[3]
     const password = this.state.password;
     const cookies = new Cookies();
-    // console.log(eMail,password)
+    console.log(password,secString)
     const payload = {
       sec_string:secString,
       pass:password
     }
-    api(url, payload)
+    api(url,'post-formdata', payload)
       .then(response => {
-        const { result, message, status} = response;
+        const { data, message, success,auth} = response;
         // console.log(result)
         
         this.props.actions.addFlag({
           message: message,
-          appearance: (status ? "normal" :  "warning")
+          appearance: (success ? "warning" :  "danger")
         });    
-        if (status) {
-            this.props.actions.loginUser({
-              auth:result.auth,
-              auth_token: result.user.auth_token,
-              email: result.user.email,
-              first_name: result.user.first_name,
-              id: result.user.id,
-              is_staff: result.user.is_staff,
-              last_name: result.user.last_name,
-              user_role: result.user.user_role
-            })
-            cookies.set('auth_token', result.user.auth_token, { path: '/' });
-            cookies.set('user_id', result.user.id, { path: '/' });
-            cookies.set('first_name', result.user.first_name, { path: '/' });
-            cookies.set('last_name', result.user.last_name, { path: '/' });
-            cookies.set('email', result.user.email, { path: '/' });
-            browserHistory.push("/testengine/adminpanel/sections/");
-        }else{
+        if (success) {
+          this.props.actions.loginUser({
+            auth:auth,
+            auth_token: data.auth_token,
+            email: data.email,
+            first_name: data.first_name,
+            id: data.id,
+            is_staff: data.is_staff,
+            last_name: data.last_name,
+          })
+          cookies.set('auth_token', data.auth_token, { path: '/' });
+          cookies.set('user_id', data.id, { path: '/' });
+          cookies.set('first_name', data.first_name, { path: '/' });
+          cookies.set('last_name', data.last_name, { path: '/' });
+          cookies.set('email', data.email, { path: '/' });
+          browserHistory.push("/adminpanel/items");
+      }else{
 
-            cookies.set('auth_token', '', { path: '/' });
-            cookies.set('user_id', '', { path: '/' });
-            cookies.set('first_name', '', { path: '/' });
-            cookies.set('last_name', '', { path: '/' });
-            cookies.set('email', '', { path: '/' });
-          }
-      })
+          cookies.set('auth_token', '', { path: '/' });
+          cookies.set('user_id', '', { path: '/' });
+          cookies.set('first_name', '', { path: '/' });
+          cookies.set('last_name', '', { path: '/' });
+          cookies.set('email', '', { path: '/' });
+
+        }
+    })
       .catch(error => {
         console.log("Handle Filter Failed");
       });
@@ -144,7 +144,7 @@ class LoginPage extends Component {
                     <br></br>
                       <div className="button-row-login">
                           <div className="login-button">
-                          <Button onClick={this.handleReset} type="submit" appearance="primary">
+                          <Button onClick={this.handleReset} type="submit" appearance="warning">
                             Reset Password
                           </Button>
                           </div>
