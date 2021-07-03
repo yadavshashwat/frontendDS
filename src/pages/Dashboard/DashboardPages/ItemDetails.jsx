@@ -46,7 +46,7 @@ function titleCase(str) {
   return str.join(' ');
 }
 
-
+var numImagesAtaTime = 4;
 // api url path
 
 var url_itemvendor = "/v1/itemvendors/";
@@ -105,6 +105,9 @@ class ItemDetails extends Component {
       pageSize: {'value':20,'label':'20 Items/Page'},
       
       ImageList:[],
+      ImageListToShow:[],
+      numImagePages:1,
+      imagePageNum:1,
       // filter variables
       sortByOptions: [],
       orderByOptions: [],
@@ -122,7 +125,8 @@ class ItemDetails extends Component {
       costPriceValue:"",
       
       // Modal variables
-
+      descriptionToShow:"",
+      allDescription:false,
       isModalOpen: false,
       submitError: "",
       isNew: true,
@@ -131,10 +135,24 @@ class ItemDetails extends Component {
       isConfModalOpen:false,
       costUpdateModal:false,
       isStatusUpdate:false,
-      statusValue:""
-
+      statusValue:"",
     };
   }
+
+  hanldleShowAllDescription = () => {
+    this.setState({
+      descriptionToShow: this.state.data.description,
+      allDescription:true
+    })
+  }
+
+  hanldleShowLessDescription = () => {
+    this.setState({
+      descriptionToShow: this.state.data.description.substring(0, 200),
+      allDescription:false
+    })
+  }
+
 
   hideSearchIcon = () => {
     this.setState({ searchIcon: false });
@@ -371,6 +389,16 @@ class ItemDetails extends Component {
     });
 
   }
+ 
+  handleImagePageClick = data => {
+    let selected = data.selected;
+    var newImageList = [...this.state.ImageList.slice(data.selected * numImagesAtaTime, data.selected * numImagesAtaTime + numImagesAtaTime)]
+    this.setState({ 
+      imagePageNum: selected + 1,
+      ImageListToShow:newImageList
+    });
+
+  };
 
 
 
@@ -396,15 +424,20 @@ class ItemDetails extends Component {
               thumbnail: data.image_details[i].path,
               isSelected: false,
               caption: ""
-          }
+            }
           )
         }
-    
+        var descriptionToShow = data.description.substring(0, 200);
+        var numImagePages = Math.floor(data.image_details.length/numImagesAtaTime) + (data.image_details.length%numImagesAtaTime === 0 ? 0 : 1)
+        var ImageListToShow = [...IMAGES.slice(0,numImagesAtaTime)]
         this.setState(
           {
             ImageList:IMAGES,
             data: data,
-            statusValue:{'value':data.status,'label':status_dict[data.status]}
+            descriptionToShow:descriptionToShow,
+            statusValue:{'value':data.status,'label':status_dict[data.status]},
+            numImagePages: numImagePages,
+            ImageListToShow:ImageListToShow
           }
         );
 
@@ -472,13 +505,6 @@ class ItemDetails extends Component {
           isSortable: false,
           shouldTruncate: false
         },
-        // {
-        //   key: "other_contact",
-        //   content: "Other Contact Details",
-        //   width: 20,
-        //   isSortable: false,
-        //   shouldTruncate: false
-        // },
         {
           key: "address",
           content: "City & State",
@@ -627,7 +653,7 @@ class ItemDetails extends Component {
                 <GridColumn medium={2}><span className="item-details-text"><b>Dimensions</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.dimensions? this.state.data.dimensions : ""}</span></GridColumn>
               </Grid>
               <Grid >
-                <GridColumn medium={2}><span className="item-details-text"><b>Description</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.description? this.state.data.description : ""}</span></GridColumn>
+                <GridColumn medium={2}><span className="item-details-text"><b>Description</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.description? this.state.descriptionToShow : ""}</span> <span onClick={this.state.allDescription ? this.hanldleShowLessDescription : this.hanldleShowAllDescription} className={this.state.data.description ?  ((this.state.data.description).length > 200 ? "read-more-button-display" :  "no-read-more-button-display") : ""} >... Show {this.state.allDescription ? "Less": "More"}</span></GridColumn>
               </Grid>
               <Grid >
                 <GridColumn medium={2}><span className="item-details-text"><b>Selling Price</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.sell_price? ("₹ " + this.state.data.sell_price) : ""}</span></GridColumn>
@@ -666,7 +692,26 @@ class ItemDetails extends Component {
 
           </GridColumn>
           <GridColumn medium={6}>
-            <Gallery enableImageSelection={false} images={this.state.ImageList}/>,
+            <Gallery enableImageSelection={false} images={this.state.ImageListToShow}/>,
+            {(this.state.loaded && this.state.numImagePages > 1) && (
+                <ReactPaginate
+                  previousLabel={'<'}
+                  nextLabel={'>'}
+                  breakLabel={'...'}
+                  breakClassName={'break-me'}
+                  pageCount={this.state.numImagePages}
+                  marginPagesDisplayed={2}
+                  pageRangeDisplayed={5}
+                  onPageChange={this.handleImagePageClick}
+                  containerClassName={'pagination'}
+                  previousClassName={'pagination-next'}
+                  nextClassName={'pagination-next'}
+                  subContainerClassName={'pages-pagination'}
+                  activeClassName={'active'}
+                  forcePage={this.state.imagePageNum - 1}
+                />
+                )}
+
           </GridColumn>
         </Grid>
         <br></br>

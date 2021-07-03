@@ -404,7 +404,7 @@ a:hover{
     position: fixed;
     top:1px;
     left: 1px;
-    z-index: 1;
+    z-index: 99;
     display: block;
     text-align: center;
     line-height: 50em;
@@ -420,6 +420,7 @@ a:hover{
 }
 
 .loader-image{
+    z-index: 100;
     max-width:100%;
     max-height:100%;
     vertical-align: middle;
@@ -427,6 +428,19 @@ a:hover{
 /* Add Edit Items Page End */
 
 /* Item Details Page Start */
+.no-display-num{
+    display: none;
+}
+
+.read-more-button-display{
+    color: #0847A6;
+    cursor: pointer;
+}
+
+.no-read-more-button-display{
+    display: none;
+}
+
 .status-update-button-row{
     display: flex;
 }
