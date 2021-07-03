@@ -11,7 +11,6 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
@@ -27,7 +26,8 @@ import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import TextArea from '@atlaskit/textarea';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
@@ -221,10 +221,8 @@ class ItemCategory extends Component {
     const index = dataList.findIndex(x => x.id === dataId);
     api(url + '/' + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
+      
       if (success){
         this.setState({            
           data: [
@@ -300,10 +298,7 @@ class ItemCategory extends Component {
           description: data.description
         }).then(response => {
           const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
+          StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
           if (success){
             if (indexCat === -1){
               this.setState({
@@ -328,10 +323,7 @@ class ItemCategory extends Component {
           description: data.description,
         }).then(response => {
           const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
+          StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
           if (success){
             if (indexCat === -1){
               this.setState({
@@ -362,12 +354,7 @@ class ItemCategory extends Component {
   componentDidMount() {
     let filtersData =  {  page_num: this.state.pageNum, page_size: this.state.pageSize.value }
     api(url, 'get', filtersData).then(response => {
-      const { data, filters, message, success, num_pages } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });
-
+      const { data, filters, success, num_pages } = response;
       if (success) {
         this.setState(
           {
@@ -502,7 +489,7 @@ class ItemCategory extends Component {
         {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
@@ -731,7 +718,7 @@ class ItemCategory extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 

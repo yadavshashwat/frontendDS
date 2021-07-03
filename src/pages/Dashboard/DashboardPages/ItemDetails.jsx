@@ -11,31 +11,27 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
 import Button from '@atlaskit/button';
 import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
-import { CreatableSelect } from '@atlaskit/select';
 import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
 import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
-import Form, { Field } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
-import TextArea from '@atlaskit/textarea';
 import Gallery from 'react-grid-gallery';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
 import EditorEditIcon from '@atlaskit/icon/glyph/editor/edit';
 // Components
-// import ContentWrapper from '../../../components/ContentWrapper';
 
 // Other Packages
 import ReactPaginate from 'react-paginate';
@@ -262,10 +258,7 @@ class ItemDetails extends Component {
     console.log(index)
     api(url_vendoritempair  + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           dataVendor: [
@@ -299,10 +292,7 @@ class ItemDetails extends Component {
     api(url_item  + this.state.data.id, 'put' ,{'name': this.state.data.name, 'status':this.state.statusValue.value})
   .then(response => {
     const { data, message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+    StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           data:data,
@@ -365,10 +355,7 @@ class ItemDetails extends Component {
     }
     api(url_vendoritempair  + dataId, 'put',payload).then(response => {
       const { data, message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           dataVendor: [
@@ -385,96 +372,6 @@ class ItemDetails extends Component {
 
   }
 
-  // submitData = data => {
-  //   var submit = true
-  //   const dataList = this.state.data;
-  //   const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-  //   const sourceList = this.state.sourceOptions;
-  //   const indexSource = sourceList.findIndex(x => x.value === data.source.value);
-
-  //   // console.log(index)
-  //   if (submit) {
-  //     this.setState({ loaded: false });
-  //     if (this.state.isNew) {
-  //       api(url, 'post' ,{
-  //         company_name: data.company_name,
-  //         owner_name: data.owner_name,
-  //         owner_phone: data.owner_phone,
-  //         contact_name: data.contact_name,
-  //         contact_phone: data.contact_phone,
-  //         city: data.city.value,
-  //         state: data.state.value,
-  //         address: data.address,
-  //         pincode: data.pincode,
-  //         source: data.source.value,
-  //         email: data.email,
-  //       }).then(response => {
-  //         const { data, message, success } = response;
-  //         this.props.actions.addFlag({
-  //           message: message,
-  //           appearance: (success ? "warning" :  "danger")
-  //         });    
-  //         if (success){
-  //           if (indexSource === -1){
-  //             this.setState({
-  //               sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
-  //             })
-  //           }            
-  //           this.setState({
-  //             data: [data, ...this.state.data],
-  //             loaded: true
-  //           });
-  //           this.handleModalClose();  
-  //         }else{
-  //           this.setState({
-  //             loaded:true
-  //           })
-  //         }
-  //       });
-  //     }else{
-  //       api(url + '/' + this.state.activeDataId,'put', {
-  //         company_name: data.company_name,
-  //         owner_name: data.owner_name,
-  //         owner_phone: data.owner_phone,
-  //         contact_name: data.contact_name,
-  //         contact_phone: data.contact_phone,
-  //         city: data.city.value,
-  //         state: data.state.value,
-  //         address: data.address,
-  //         pincode: data.pincode,
-  //         source: data.source.value,
-  //         email: data.email,
-  //       }).then(response => {
-  //         const { data, message, success } = response;
-  //         this.props.actions.addFlag({
-  //           message: message,
-  //           appearance: (success ? "warning" :  "danger")
-  //         });    
-  //         if (success){
-  //           if (indexSource === -1){
-  //             this.setState({
-  //               sourceOptions:[{'value':data.source,'label':changeCase.titleCase(data.source)},...this.state.sourceOptions]
-  //             })
-  //           }            
-
-  //           this.setState({            
-  //             data: [
-  //               ...this.state.data.slice(0, index),
-  //                 data,
-  //               ...this.state.data.slice(index + 1)
-  //             ],
-  //             loaded: true,            
-  //           });
-  //           this.handleModalClose();
-  //         }else{
-  //           this.setState({
-  //             loaded:true
-  //           })
-  //         }
-  //       });
-  //     }
-  //   }
-  // }
 
 
   // On Load
@@ -487,11 +384,7 @@ class ItemDetails extends Component {
 
     
     api(url_item + textPath, 'get', {}).then(response => {
-      const { data,  message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });
+      const { data, success } = response;
       if (success) {
 
         var IMAGES = []
@@ -501,8 +394,6 @@ class ItemDetails extends Component {
             {
               src: data.image_details[i].path,
               thumbnail: data.image_details[i].path,
-              // thumbnailWidth: meta['width'],
-              // thumbnailHeight: meta['height'],
               isSelected: false,
               caption: ""
           }
@@ -518,11 +409,7 @@ class ItemDetails extends Component {
         );
 
         api(url_itemvendor + textPath, 'get', filtersData).then(response => {
-          const { data, filters, message, success, num_pages } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });
+          const { data, filters, success, num_pages } = response;
           if (success) {
             this.setState(
               {
@@ -665,13 +552,14 @@ class ItemDetails extends Component {
 
     let breadCrumbElement = null
     var Path = window.location.pathname.split("/")
+    var textPath = ""
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
-        var textPath = ""
-        if (index == 3){
-          var textPath = this.state.data ? changeCase.titleCase(this.state.data.name) : ""
+        textPath = ""
+        if (index === 3){
+          textPath = this.state.data ? changeCase.titleCase(this.state.data.name) : ""
         }else{
-          var textPath = changeCase.titleCase(Path[index])
+          textPath = changeCase.titleCase(Path[index])
         }
         
         
@@ -689,30 +577,6 @@ class ItemDetails extends Component {
       
     });  
 
-    // const IMAGES =
-    //     [{
-    //             src: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_b.jpg",
-    //             thumbnail: "https://c2.staticflickr.com/9/8817/28973449265_07e3aa5d2e_n.jpg",
-    //             thumbnailWidth: 320,
-    //             thumbnailHeight: 174,
-    //             isSelected: true,
-    //             caption: "After Rain (Jeshu John - designerspics.com)"
-    //     },
-    //     {
-    //             src: "https://c2.staticflickr.com/9/8356/28897120681_3b2c0f43e0_b.jpg",
-    //             thumbnail: "https://c2.staticflickr.com/9/8356/28897120681_3b2c0f43e0_n.jpg",
-    //             thumbnailWidth: 320,
-    //             thumbnailHeight: 212,
-    //             tags: [{value: "Ocean", title: "Ocean"}, {value: "People", title: "People"}],
-    //             caption: "Boats (Jeshu John - designerspics.com)"
-    //     },
-        
-    //     {
-    //             src: "https://c4.staticflickr.com/9/8887/28897124891_98c4fdd82b_b.jpg",
-    //             thumbnail: "https://c4.staticflickr.com/9/8887/28897124891_98c4fdd82b_n.jpg",
-    //             thumbnailWidth: 320,
-    //             thumbnailHeight: 212
-    //     }]
 
     let orderByIcon = <SortIconContainer><ArrowUpCircleIcon></ArrowUpCircleIcon></SortIconContainer>
     if (this.state.orderBy === "asc") {
@@ -725,7 +589,7 @@ class ItemDetails extends Component {
                 {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
@@ -998,7 +862,7 @@ class ItemDetails extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 

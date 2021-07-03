@@ -14,11 +14,11 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../redux/actions/flag";
 import authorization from "../redux/actions/authorization";
 
 import { Grid, GridColumn } from '@atlaskit/page';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 
 import TextField from '@atlaskit/textfield';
 import Button from '@atlaskit/button';
@@ -30,7 +30,6 @@ const url="/v1/user/reset";
 class LoginPage extends Component {
   static contextTypes = {
     showModal: PropTypes.func,
-    addFlag: PropTypes.func,
     onConfirm: PropTypes.func,
     onCancel: PropTypes.func,
     onClose: PropTypes.func,
@@ -44,13 +43,6 @@ class LoginPage extends Component {
     }
   }
 
-  handleEmailChange = event => {
-    var data = event.target.value
-    this.setState({
-      email: data
-    });
-  };
-
   handlePasswordchange = event => {
     var data = event.target.value
     this.setState({
@@ -58,10 +50,6 @@ class LoginPage extends Component {
     });
   };
 
-  handleForgetPassword = () =>{
-
-
-  }
 
   handleReset = () => {
     var Path = window.location.pathname.split("/")
@@ -76,12 +64,8 @@ class LoginPage extends Component {
     api(url,'post-formdata', payload)
       .then(response => {
         const { data, message, success,auth} = response;
-        // console.log(result)
-        
-        this.props.actions.addFlag({
-          message: message,
-          appearance: (success ? "warning" :  "danger")
-        });    
+        StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:2000})
+
         if (success) {
           this.props.actions.loginUser({
             auth:auth,
@@ -177,7 +161,9 @@ function mapStateToProps(store) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...authorization, ...flag }, dispatch)
+    actions: bindActionCreators({ 
+      ...authorization
+     }, dispatch)
   };
 }
 

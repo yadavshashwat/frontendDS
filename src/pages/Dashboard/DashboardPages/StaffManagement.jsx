@@ -11,23 +11,20 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
 import Button from '@atlaskit/button';
 import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
-import { CreatableSelect } from '@atlaskit/select';
 import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
-import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import Form, { Field } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
-import TextArea from '@atlaskit/textarea';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
@@ -222,10 +219,7 @@ class ItemCategory extends Component {
     const index = dataList.findIndex(x => x.id === dataId);
     api(url + '/' + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           data: [
@@ -288,10 +282,6 @@ class ItemCategory extends Component {
     const dataList = this.state.data;
     const index = dataList.findIndex(x => x.id === this.state.activeDataId);
     console.log(index)
-    // const categoryList = this.state.categoryOptions;
-    // const indexCat = categoryList.findIndex(x => x.value === data.category.value);
-    // console.log(indexCat)
-    // console.log(index)
     if (submit) {
       this.setState({ loaded: false });
       if (this.state.isNew) {
@@ -302,10 +292,7 @@ class ItemCategory extends Component {
           phone_number: data.phone_number
         }).then(response => {
           const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
+          StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
           if (success){
             this.setState({
               data: [data, ...this.state.data],
@@ -326,10 +313,7 @@ class ItemCategory extends Component {
           phone_number: data.phone_number
         }).then(response => {
           const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
+          StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
           if (success){
             this.setState({            
               data: [
@@ -355,12 +339,7 @@ class ItemCategory extends Component {
   componentDidMount() {
     let filtersData =  {  page_num: this.state.pageNum, page_size: this.state.pageSize.value }
     api(url, 'get', filtersData).then(response => {
-      const { data, filters, message, success, num_pages } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });
-
+      const { data, filters, success, num_pages } = response;
       if (success) {
         this.setState(
           {
@@ -368,8 +347,7 @@ class ItemCategory extends Component {
             loaded: true,
             numPages: num_pages,
             sortByOptions: JSON.parse(JSON.stringify(filters.sort_by)),
-            orderByOptions: JSON.parse(JSON.stringify(filters.order_by)),
-            // categoryOptions: JSON.parse(JSON.stringify(filters.category)),
+            orderByOptions: JSON.parse(JSON.stringify(filters.order_by))
           }
         );
       }
@@ -506,7 +484,7 @@ class ItemCategory extends Component {
                 {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
@@ -731,7 +709,7 @@ class ItemCategory extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 

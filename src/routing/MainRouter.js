@@ -5,7 +5,7 @@ import DashboadSidebarApp from '../pages/Dashboard/DashboardSidebarApp.jsx';
 import Routes from "./RoutesList"
 import { Provider } from 'react-redux';
 import store from '../store';
-import Flag from "../components/Flag";
+import StatusAlert from 'react-status-alert'
 
 export default class MainRouter extends Component {
   constructor() {
@@ -59,7 +59,7 @@ export default class MainRouter extends Component {
           })
         }
       </Router>
-      <Flag/>
+      <StatusAlert/>
       </Provider>
       
       

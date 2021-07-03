@@ -5,7 +5,8 @@ import React, { Component } from 'react';
 import { browserHistory } from 'react-router';
 //do something...
 
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 // Backend Connection
 import { api } from "../helpers/api";
 // Redux 
@@ -14,7 +15,6 @@ import Cookies from 'universal-cookie';
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../redux/actions/flag";
 import authorization from "../redux/actions/authorization";
 
 const url="/v1/user/logout";
@@ -28,10 +28,7 @@ class Logout extends Component {
     api(url,'post-formdata' ,payload)
     .then(response => {
       const { message, success} = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
 
       // console.log(result)        
       if (success) {
@@ -63,7 +60,9 @@ function mapStateToProps(store) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...authorization, ...flag }, dispatch)
+    actions: bindActionCreators({ 
+      ...authorization
+    }, dispatch)
   };
 }
 

@@ -13,7 +13,6 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
@@ -23,7 +22,8 @@ import TextArea from '@atlaskit/textarea';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import { CheckboxSelect } from '@atlaskit/select';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 //Icons
 import pathIcon from "../../../routing/BreadCrumbIcons"
 
@@ -113,8 +113,14 @@ class AddEditItem extends Component {
 
   handleFileDrop = acceptedFiles => {
     const currentState = this.state.ImageList
+    var indexFile = NaN
+    function indexgive(i) {
+      var indexList  = currentState.findIndex(x => x.path === acceptedFiles[i].path);
+      return indexList
+    }
+
     for(var i = 0; i < acceptedFiles.length ; i += 1) {
-      var indexFile = currentState.findIndex(x => x.path === acceptedFiles[i].path);
+      indexFile = indexgive(i);
       if(indexFile < 0 ){
         currentState.push(acceptedFiles[i])
       }
@@ -145,10 +151,7 @@ class AddEditItem extends Component {
     
     api(url_image_delete  + dataId, 'delete' ,{}).then(response => {
     const { message, success } = response;
-    this.props.actions.addFlag({
-      message: message,
-      appearance: (success ? "warning" :  "danger")
-    });    
+    StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
     if (success){
       this.setState({UploadedImages: [
         ...currentState.slice(0, indexFile),
@@ -159,17 +162,6 @@ class AddEditItem extends Component {
   })
   .catch(error => console.log(error))
 }
-    // // console.log(path)
-    // var currentState = this.state.ImageList
-    // var indexFile = currentState.findIndex(x => x.path === path);
-    // this.setState({ImageList: [
-    //     ...currentState.slice(0, indexFile),
-    //     ...currentState.slice(indexFile + 1)
-    //   ]
-    // })
-    
-
-// handleCategoryChange = 
 
 handleVendorChange = value => {
   // const data = (value).map(x => x['value']).join(",");
@@ -193,7 +185,6 @@ handleSaveContinueItems = () =>{
 
 
 handleEditItem = () => {
-  // console.log('here')
   const submitCheck = this.checkError();
   this.setState({
     loaded:false
@@ -207,7 +198,6 @@ handleEditItem = () => {
       sell_price: this.state.ItemSellingPrice,
       vendorlist : this.state.vendorValue.map(x => x['value']).join(",")
     }
-  // console.log(payloadSend)
   api(url_items + '/' + this.state.itemID, 'put' ,payloadSend)
   .then(response => {
     const { data, message, success } = response;
@@ -215,10 +205,7 @@ handleEditItem = () => {
     if (this.state.ImageList.length > 0){
       updatedMessage = message + " Uploading Images"
     }
-    this.props.actions.addFlag({
-      message: updatedMessage,
-      appearance: (success ? "warning" :  "danger")
-    });    
+    StatusAlertService.showAlert(updatedMessage, success ? 'info': 'error',{autoHideTime:1000})
     if (success){
       const formData = new FormData();
       for(var i = 0; i < this.state.ImageList.length ; i += 1) {
@@ -228,11 +215,7 @@ handleEditItem = () => {
         fileHandlerApi(url_image_upload + data.id ,formData)
         .then(response => {
           const {data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });   
-
+          StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
         if (success){
           this.setState({
             ImageList:[],
@@ -246,29 +229,34 @@ handleEditItem = () => {
         this.setState({
           ImageList:[],
           loaded:true,   
-          UploadedImages:[...this.state.UploadedImages,...data]             
+          UploadedImages:[...this.state.UploadedImages]             
         });
       }
+    }else{
+      this.setState({
+        loaded:true
+      })
     }
   })
   .catch(error => console.log(error))
+  }else{
+  this.setState({
+    loaded:true
+  })
 }
 };    
 
   checkError = () => {
     var noError = true
     var errorMessage = ""
-    console.log('check')
+    // console.log('check')
     if (this.state.itemNameValue === ""){
         noError = false;
         errorMessage = "Missing Item Name!"
     }
 
     if (!noError){
-        this.props.actions.addFlag({
-            message: errorMessage,
-            appearance: "warning"
-          });        
+      StatusAlertService.showAlert(errorMessage, 'error',{autoHideTime:1000})
     }
     return noError
 }
@@ -296,10 +284,7 @@ handleEditItem = () => {
       if (this.state.ImageList.length > 0){
         updatedMessage = message + " Uploading Images"
       }
-      this.props.actions.addFlag({
-        message: updatedMessage,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(updatedMessage, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
  
         const formData = new FormData();
@@ -310,10 +295,7 @@ handleEditItem = () => {
           fileHandlerApi(url_image_upload + data.id ,formData)
           .then(response => {
             const { message, success } = response;
-            this.props.actions.addFlag({
-              message: message,
-              appearance: (success ? "warning" :  "danger")
-            });   
+            StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
           if (success){
             if(type==="save"){    
               this.setState({
@@ -327,9 +309,6 @@ handleEditItem = () => {
                 ImageList:[],
                 loaded:true              
               });
-              console.log('here')
-  
-              
             }else{
               this.setState({
                 itemNameValue:"",     
@@ -424,7 +403,7 @@ handleEditItem = () => {
             }
           );
 
-          let filtersData =  {  is_all: 1 }
+          let filtersData =  {  is_all: "1" }
           api(url_category, 'get', filtersData).then(response => {
             const { data, success } = response;
             if (success) {
@@ -512,7 +491,7 @@ handleEditItem = () => {
                   var value = updatedData[i]['id']
                   var label = titleCase(updatedData[i]['company_name'])
                   vendorOptions.push({'value':value,'label':label})
-                  if (vendorAdd && updatedData[i]['id'] == parseInt(Path[3])){
+                  if (vendorAdd && updatedData[i]['id'] === parseInt(Path[3])){
                     selectedVendor = [{'value':value,'label':label}]
                   }
 
@@ -555,7 +534,7 @@ handleEditItem = () => {
                   <div className="image-div">
                     <div className="image-div-internal">
                       <div className="image-image-container">
-                        <img className="image-image" src={ URL.createObjectURL(row)}/>
+                        <img alt="to-upload-images" className="image-image" src={ URL.createObjectURL(row)}/>
                       </div>
                       <div data-id={row.path}  className="remove-image" onClick={this.handleImageRemoveClick}>
                         Remove
@@ -574,7 +553,7 @@ handleEditItem = () => {
                 <div className="image-div">
                   <div className="image-div-internal">
                     <div className="image-image-container">
-                      <img className="image-image" src={row.path}/>
+                      <img alt="uploaded-images" className="image-image" src={row.path}/>
                     </div>
                     <div data-id={row.id}  className="delete-image" onClick={this.handleImageDeleteClick}>
                       Delete
@@ -588,25 +567,26 @@ handleEditItem = () => {
 
     let breadCrumbElement = null
     var Path = window.location.pathname.split("/")
+    var textPath = ""
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
         if(this.state.isEdit){
           if(index === 3){
-            var textPath = changeCase.titleCase(this.state.itemNameValue)              
+            textPath = changeCase.titleCase(this.state.itemNameValue)              
           }else{
-            var textPath = changeCase.titleCase(Path[index])
+            textPath = changeCase.titleCase(Path[index])
           }  
         }else{
 
           if(index === 3){
             if (Path[2] === "vendors"){
               console.log(Path[2])
-              var textPath = changeCase.titleCase(this.state.vendorValue.length > 0 ? this.state.vendorValue[0].label : "")  
+              textPath = changeCase.titleCase(this.state.vendorValue.length > 0 ? this.state.vendorValue[0].label : "")  
             }else{
-              var textPath = changeCase.titleCase(Path[index])
+              textPath = changeCase.titleCase(Path[index])
             }
           }else{
-            var textPath = changeCase.titleCase(Path[index])
+            textPath = changeCase.titleCase(Path[index])
           }  
           // var textPath = changeCase.titleCase(Path[index])
         }
@@ -630,7 +610,7 @@ handleEditItem = () => {
         {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
@@ -795,7 +775,7 @@ handleEditItem = () => {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 

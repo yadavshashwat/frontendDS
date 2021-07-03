@@ -12,7 +12,6 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
@@ -20,22 +19,20 @@ import Button from '@atlaskit/button';
 // import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
 import { CreatableSelect } from '@atlaskit/select';
-import Lozenge from '@atlaskit/lozenge';
-import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
 import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
 import Form, { Field } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
-import TextArea from '@atlaskit/textarea';
 import Dropzone from 'react-dropzone'
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
-import FolderIcon from '@atlaskit/icon/glyph/folder';
 import EditorEditIcon from '@atlaskit/icon/glyph/editor/edit';
 import TrashIcon from '@atlaskit/icon/glyph/trash';
 import DocumentFilledIcon from '@atlaskit/icon/glyph/document-filled';
@@ -43,7 +40,6 @@ import DocumentFilledIcon from '@atlaskit/icon/glyph/document-filled';
 // import ContentWrapper from '../../../components/ContentWrapper';
 import ItemsPage from "../DashboardPages/ItemManagement"
 // Other Packages
-import ReactPaginate from 'react-paginate';
 import styled from "styled-components";
 import ContentLoader from "react-content-loader";
 var changeCase = require("change-case");
@@ -83,13 +79,6 @@ var url_document_delete = "/v1/vendordocdelete/"
 const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 // var noImagePath = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/other/nothing_image_new.png";
 var noImagePath = "";
-const itemOptions = [
-  {'value':10,'label':'10 Items/Page'},
-  {'value':20,'label':'20 Items/Page'},
-  {'value':30,'label':'30 Items/Page'},
-  {'value':50,'label':'50 Items/Page'},
-  {'value':100,'label':'100 Items/Page'}
-]
 
 
 
@@ -121,7 +110,6 @@ class ItemCategory extends Component {
       statusOptions: [],
       statusValue: [],
       searchIcon: true,
-      statusValue: [],
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
@@ -150,8 +138,13 @@ class ItemCategory extends Component {
 
   handleFileDrop = acceptedFiles => {
     const currentState = this.state.fileList
+    var indexFile = NaN
+    function indexgive(i) {
+      var indexList  = currentState.findIndex(x => x.path === acceptedFiles[i].path);
+      return indexList
+    }
     for(var i = 0; i < acceptedFiles.length ; i += 1) {
-      var indexFile = currentState.findIndex(x => x.path === acceptedFiles[i].path);
+      indexFile = indexgive(i)
       if(indexFile < 0 ){
         currentState.push(acceptedFiles[i])
       }
@@ -314,10 +307,7 @@ class ItemCategory extends Component {
     }
     api(url_vendoritempair  + dataId, 'put',payload).then(response => {
       const { data, message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           dataItems: [
@@ -346,10 +336,7 @@ class ItemCategory extends Component {
     console.log(index)
     api(url_vendoritempair + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           dataItems: [
@@ -383,10 +370,7 @@ class ItemCategory extends Component {
 
     api(url_vendoritempair_post, 'post',payload).then(response => {
       const { data, message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           dataItems: [
@@ -469,12 +453,6 @@ class ItemCategory extends Component {
   
   submitData = data => {
     var submit = true
-    // const dataList = this.state.data;
-    // const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-    // const sourceList = this.state.sourceOptions;
-    // const indexSource = sourceList.findIndex(x => x.value === data.source.value);
-
-    // console.log(index)
     if (submit) {
       this.setState({ loaded: false });
      
@@ -492,10 +470,7 @@ class ItemCategory extends Component {
         email: data.email,
       }).then(response => {
         const { data, message, success } = response;
-        this.props.actions.addFlag({
-          message: message,
-          appearance: (success ? "warning" :  "danger")
-        });    
+        StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
         if (success){
           this.setState({            
             data: data,
@@ -537,10 +512,7 @@ class ItemCategory extends Component {
     
     api(url_document_delete  + dataId, 'delete' ,{}).then(response => {
     const { message, success } = response;
-    this.props.actions.addFlag({
-      message: message,
-      appearance: (success ? "warning" :  "danger")
-    });    
+    StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
     if (success){
       this.setState({dataDocuments: [
         ...currentState.slice(0, indexFile),
@@ -567,10 +539,7 @@ class ItemCategory extends Component {
       fileHandlerApi(url_doc_upload + this.state.data.id ,formData)
       .then(response => {
         const {data, message, success } = response;
-        this.props.actions.addFlag({
-          message: message,
-          appearance: (success ? "warning" :  "danger")
-        });   
+        StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
 
       if (success){
         this.setState({
@@ -593,11 +562,7 @@ class ItemCategory extends Component {
     let filtersData =  {  is_all: "1" }
 
     api(url_vendor + textPath, 'get', {}).then(response => {
-      const { data,  message, success,filters } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });
+      const { data, success,filters } = response;
       if (success) {
         this.setState(
           {
@@ -611,11 +576,7 @@ class ItemCategory extends Component {
         );
 
         api(url_vendoritem + textPath, 'get', filtersData).then(response => {
-          const { data, filters, message, success, num_pages } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });
+          const { data, filters, success, num_pages } = response;
           if (success) {
             this.setState(
               {
@@ -668,7 +629,7 @@ class ItemCategory extends Component {
                         </div>
                         <Link to={"/adminpanel/items/" + row.item_details.id}>
                           <div className="item-image-container-vendor">
-                            <img className="item-image" src={row.item_details.image_details.length > 0 ? row.item_details.image_details[row.item_details.image_details.findIndex(x => x.is_primary === true) > 0 ? row.item_details.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
+                            <img alt={row.item_details.name} className="item-image" src={row.item_details.image_details.length > 0 ? row.item_details.image_details[row.item_details.image_details.findIndex(x => x.is_primary === true) > 0 ? row.item_details.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
                           </div>
                           <div className="item-name-vendor">
                             {changeCase.titleCase(row.item_details.name)} 
@@ -726,7 +687,7 @@ class ItemCategory extends Component {
                         <TrashIcon size={'medium'} ></TrashIcon>
                       </div>
                     </div>
-                    <a href={row.path} target="_blank">
+                    <a href={row.path} target="_blank" rel="noopener noreferrer">
                       <div className="file-div-internal">
                         <div className="file-icon-showcase">
                           <DocumentFilledIcon></DocumentFilledIcon>
@@ -764,13 +725,14 @@ class ItemCategory extends Component {
 
     let breadCrumbElement = null
     var Path = window.location.pathname.split("/")
+    var textPath = ""
     breadCrumbElement = Path.map((row, index) => {
       if (index > 1 && index < (Path.length)){
-        var textPath = ""
-        if (index == 3){
-          var textPath = this.state.data ? changeCase.titleCase(this.state.data.company_name) : ""
+        textPath = ""
+        if (index === 3){
+          textPath = this.state.data ? changeCase.titleCase(this.state.data.company_name) : ""
         }else{
-          var textPath = changeCase.titleCase(Path[index])
+          textPath = changeCase.titleCase(Path[index])
         }
         var link =  (Path.slice(0,index + 1).join("/"))
         // console.log(index,textPath, link)
@@ -796,7 +758,7 @@ class ItemCategory extends Component {
                 {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
@@ -910,7 +872,7 @@ class ItemCategory extends Component {
           <GridColumn medium={4}>
             <div className="item-vendor-button-row">
             <div className="item-add-button-vendor">
-            <Button onClick={this,this.handleAddModalOpen} appearance="warning">
+            <Button onClick={this.handleAddModalOpen} appearance="warning">
               Add Existing Item
             </Button>
             </div>
@@ -1234,7 +1196,7 @@ class ItemCategory extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 

@@ -12,34 +12,27 @@ import { connect } from "react-redux";
 
 // Redux dispatch
 import { bindActionCreators } from "redux";
-import flag from "../../../redux/actions/flag";
 
 // Atlaskit Packages
 import Select from "@atlaskit/select";
 import Button from '@atlaskit/button';
 // import DynamicTable from '@atlaskit/dynamic-table';
 import SearchIcon from "@atlaskit/icon/glyph/search";
-import { CreatableSelect } from '@atlaskit/select';
-import Lozenge from '@atlaskit/lozenge';
-import DropdownMenu, { DropdownItemGroup, DropdownItem } from '@atlaskit/dropdown-menu';
 import { CheckboxSelect } from '@atlaskit/select';
 import Modal, { ModalTransition } from '@atlaskit/modal-dialog';
-import Form, { Field } from '@atlaskit/form';
 import TextField from '@atlaskit/textfield';
 import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
-import TextArea from '@atlaskit/textarea';
-
+import { StatusAlertService } from 'react-status-alert'
+import 'react-status-alert/dist/status-alert.css'
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
-import FolderIcon from '@atlaskit/icon/glyph/folder';
 import TrashIcon from '@atlaskit/icon/glyph/trash';
 
 // Components
-// import ContentWrapper from '../../../components/ContentWrapper';
 
 // Other Packages
 import ReactPaginate from 'react-paginate';
@@ -95,6 +88,7 @@ const emptyModalData = {
 const deleteConfMessage = "Are you sure you want to delete the item? Please note that this will delete the said item from all vendors etc."
 const deleteConfHeader = "Confirm Item Deletion"
 
+
 class ItemCategory extends Component {
   constructor(props) {
     super(props);
@@ -126,10 +120,10 @@ class ItemCategory extends Component {
       modalData: emptyModalData,
       activeDataId: "",
       isConfModalOpen:false,
-
     };
   }
 
+  // alert = useAlert()
   hideSearchIcon = () => {
     this.setState({ searchIcon: false });
   };
@@ -263,10 +257,7 @@ class ItemCategory extends Component {
     const index = dataList.findIndex(x => x.id === dataId);
     api(url + '/' + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });    
+      StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
       if (success){
         this.setState({            
           data: [
@@ -284,132 +275,13 @@ class ItemCategory extends Component {
     });
   }
 
-  
-  handleEditModalOpen = event => {
-    const data_id = event.currentTarget.dataset.id
-    this.setState({ isNew: false, activeDataId: parseInt(data_id,10) });
-
-    api(url + '/' + data_id,'get', {}).then(response => {
-      const { data, success } = response;
-      if (success) {
-        this.setState(
-          {
-            modalData: data,
-          }, () => {
-            this.setState({ isModalOpen: true });
-          });
-      }
-    });
-  }
-
-
-  handleAddModalOpen = () => {
-    this.setState({
-      isModalOpen: true,
-      isNew: true,
-      activeDataId: "",
-      modalData: Object.assign({}, emptyModalData)
-    });
-  }
-
-  handleModalClose = () => {
-    this.setState({
-      isModalOpen: false,
-      isNew: true,
-      activeDataId: "",
-      modalData: Object.assign({}, emptyModalData)
-    });
-  }
-
-
-
-  
-  submitData = data => {
-    var submit = true
-    const dataList = this.state.data;
-    const index = dataList.findIndex(x => x.id === this.state.activeDataId);
-    console.log(index)
-    const categoryList = this.state.categoryOptions;
-    const indexCat = categoryList.findIndex(x => x.value === data.category.value);
-    console.log(indexCat)
-    // console.log(index)
-    if (submit) {
-      this.setState({ loaded: false });
-      if (this.state.isNew) {
-        api(url, 'post' ,{
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description
-        }).then(response => {
-          const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
-          if (success){
-            if (indexCat === -1){
-              this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-              })
-            }            
-            this.setState({
-              data: [data, ...this.state.data],
-              loaded: true
-            });
-            this.handleModalClose();  
-          }else{
-            this.setState({
-              loaded:true
-            })
-          }
-        });
-      }else{
-        api(url + '/' + this.state.activeDataId,'put', {
-          category: data.category.value,
-          sub_category: data.sub_category,
-          description: data.description,
-        }).then(response => {
-          const { data, message, success } = response;
-          this.props.actions.addFlag({
-            message: message,
-            appearance: (success ? "warning" :  "danger")
-          });    
-          if (success){
-            if (indexCat === -1){
-              this.setState({
-                categoryOptions:[{'value':data.category,'label':changeCase.titleCase(data.category)},...this.state.categoryOptions]
-              })
-            }
-            this.setState({            
-              data: [
-                ...this.state.data.slice(0, index),
-                  data,
-                ...this.state.data.slice(index + 1)
-              ],
-              loaded: true,            
-            });
-            this.handleModalClose();
-          }else{
-            this.setState({
-              loaded:true
-            })
-          }
-        });
-      }
-    }
-  }
-
 
   // On Load
   componentDidMount() {
     let filtersData =  {  page_num: this.state.pageNum, page_size: this.state.pageSize.value }
     api(url, 'get', filtersData).then(response => {
-      const { data, filters, message, success, num_pages } = response;
-      this.props.actions.addFlag({
-        message: message,
-        appearance: (success ? "warning" :  "danger")
-      });
-
+      const { data, filters, success, num_pages } = response;
+      // StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
       if (success) {
         this.setState(
           {
@@ -451,7 +323,7 @@ class ItemCategory extends Component {
                   <div className="item-div-vendor-add">
                     <div className="item-div-internal-vendor-add">
                       <div className="item-image-container-vendor-add">
-                        <img className="item-image-vendor-add" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
+                        <img alt={row.name} className="item-image-vendor-add" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
                       </div>
                       <div className="item-name-vendor-add">
                         {changeCase.titleCase(row.name)} 
@@ -480,7 +352,7 @@ class ItemCategory extends Component {
                         </div>
                     <Link to={"/adminpanel/items/" + row.id}>
                       <div className="item-image-container">
-                        <img className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
+                        <img alt={row.name} className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
                       </div>
                       <div className="item-name">
                         {changeCase.titleCase(row.name)} 
@@ -550,11 +422,11 @@ class ItemCategory extends Component {
           {(!this.state.loaded)  && (
           <div className="overlay-loader">
             <div className="loader-container">
-                <img className="loader-image" src={loaderURL}></img>
+                <img alt="loader" className="loader-image" src={loaderURL}></img>
             </div>
           </div>
         )}
-
+      {/* <StatusAlert/> */}
       <div className="dashboard-page">
         {!this.props.isVendorAdd && (
         <Grid layout="fluid">
@@ -673,67 +545,6 @@ class ItemCategory extends Component {
         </Grid>  
           
         <ModalTransition>
-          {this.state.isModalOpen && (
-
-            <Modal autoFocus={false}  actions={
-              [
-                { text: 'Close', appearance: 'normal', onClick: this.handleModalClose },
-              ]
-            } onClose={this.handleModalClose} height={475} heading={(this.state.isNew ? "Add" : "Edit") + " Item Category"}>
-
-              <Form onSubmit={this.submitData}>
-                {({ formProps }) => (
-                  <form {...formProps}>
-                    <Grid>
-                    <GridColumn medium={12}>
-                        <Field name="category" defaultValue={{ 'value': this.state.modalData.category, 'label': changeCase.titleCase(this.state.modalData.category) }}
-                              label="Item Category" 
-                              isRequired>
-                          {({ fieldProps }) => <CreatableSelect options={this.state.categoryOptions} 
-                          // placeholder="eg. Sentence Correction"
-                           {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-                      <GridColumn medium={12}>
-                        <Field name="sub_category" defaultValue={this.state.modalData.sub_category}
-                              label="Sub Category" 
-                              isRequired>
-                          {({ fieldProps }) => <TextField 
-                          // placeholder="eg. Inference" 
-                          {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-                      <GridColumn medium={12}>
-                        <Field name="description"
-                            defaultValue={this.state.modalData.description}
-                            label="Category Description"                            
-                            // isRequired
-                            >
-                          {({ fieldProps }) => <TextArea
-                          minimumRows = {3} 
-                          // placeholder="eg. Inference are topics which require xyz" 
-                          {...fieldProps} />}
-                        </Field>
-                      </GridColumn>
-                    </Grid>
-                    <Grid>
-                      <GridColumn medium={12}>
-                        <br></br>
-                        <span className="invalid">{this.state.submitError}</span>
-                        <br></br>
-                        <Button type="submit" appearance="warning">
-                          Submit
-                      </Button>
-                      </GridColumn>
-                    </Grid>
-                  </form>
-                )}
-              </Form>
-            </Modal>
-
-          )}
-        </ModalTransition>
-        <ModalTransition>
           {this.state.isConfModalOpen && (
             <Modal autoFocus={false}  actions={
               [
@@ -754,7 +565,7 @@ class ItemCategory extends Component {
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators({ ...flag }, dispatch)
+    actions: bindActionCreators({}, dispatch)
   };
 }
 
