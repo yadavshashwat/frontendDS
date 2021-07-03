@@ -691,11 +691,8 @@ class ItemDetails extends Component {
               </Grid>
 
           </GridColumn>
-          <GridColumn medium={6}>
-            <Grid>
-              <Gallery enableImageSelection={false} images={this.state.ImageListToShow}/>
-            </Grid>
-            <Grid>
+          <GridColumn medium={6}>            
+            <Gallery enableImageSelection={false} images={this.state.ImageListToShow}/>
             {(this.state.loaded && this.state.numImagePages > 1) && (
                 <ReactPaginate
                   previousLabel={'<'}
@@ -714,7 +711,6 @@ class ItemDetails extends Component {
                   forcePage={this.state.imagePageNum - 1}
                 />
                 )}
-              </Grid>
           </GridColumn>
         </Grid>
         <br></br>
