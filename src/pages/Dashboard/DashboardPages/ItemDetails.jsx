@@ -653,7 +653,7 @@ class ItemDetails extends Component {
                 <GridColumn medium={2}><span className="item-details-text"><b>Dimensions</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.dimensions? this.state.data.dimensions : ""}</span></GridColumn>
               </Grid>
               <Grid >
-                <GridColumn medium={2}><span className="item-details-text"><b>Description</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.description? this.state.descriptionToShow : ""}</span> <span onClick={this.state.allDescription ? this.hanldleShowLessDescription : this.hanldleShowAllDescription} className={this.state.data.description ?  ((this.state.data.description).length > 200 ? "read-more-button-display" :  "no-read-more-button-display") : ""} >... Show {this.state.allDescription ? "Less": "More"}</span></GridColumn>
+                <GridColumn medium={2}><span className="item-details-text"><b>Description</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.description? this.state.descriptionToShow : ""}</span> <span onClick={this.state.allDescription ? this.hanldleShowLessDescription : this.hanldleShowAllDescription} className={this.state.data.description ?  ((this.state.data.description).length > 200 ? "read-more-button-display" :  "no-read-more-button-display") : "no-read-more-button-display"} >... Show {this.state.allDescription ? "Less": "More"}</span></GridColumn>
               </Grid>
               <Grid >
                 <GridColumn medium={2}><span className="item-details-text"><b>Selling Price</b></span></GridColumn> <GridColumn medium={4}><span className="item-details-text">: {this.state.data.sell_price? ("₹ " + this.state.data.sell_price) : ""}</span></GridColumn>
@@ -692,7 +692,10 @@ class ItemDetails extends Component {
 
           </GridColumn>
           <GridColumn medium={6}>
-            <Gallery enableImageSelection={false} images={this.state.ImageListToShow}/>,
+            <Grid>
+              <Gallery enableImageSelection={false} images={this.state.ImageListToShow}/>
+            </Grid>
+            <Grid>
             {(this.state.loaded && this.state.numImagePages > 1) && (
                 <ReactPaginate
                   previousLabel={'<'}
@@ -711,7 +714,7 @@ class ItemDetails extends Component {
                   forcePage={this.state.imagePageNum - 1}
                 />
                 )}
-
+              </Grid>
           </GridColumn>
         </Grid>
         <br></br>
