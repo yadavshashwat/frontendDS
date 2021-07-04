@@ -221,12 +221,25 @@ a:hover{
     box-shadow: 5px 10px 16px 3px rgba(0,0,0,0.2);
     background-color: rgba(9,30,66,0.04);
     color: #0847A6;
-    /* border:1px solid #6B778C; */
 }
 
 /* Settings Page End */
 
 /* Items Page Start */
+.button-row{
+    display: flex;
+}
+.button-container{
+    margin: 0px 5px ;
+}
+.selected-item-count{
+    line-height:24px;
+}
+.remove-selected-button{
+    margin-left: 5px;
+    cursor: pointer;
+}
+
 .item-grid{
     padding:5px;
 }
@@ -240,13 +253,13 @@ a:hover{
     margin-top:10px;
     margin-bottom:10px;
     font-weight: 500;
-    height: 250px;    
+    height: 270px;    
 }
 
 .item-div:hover{
     box-shadow: 5px 10px 16px 3px rgba(0,0,0,0.2);
     background-color: rgba(9,30,66,0.04);
-    color: #0847A6;
+    /* color: #0847A6; */
 }
 .item-image{
     max-width:100%;
@@ -268,7 +281,7 @@ a:hover{
 }
 
 .item-name{
-    height: 60px;
+    height: 80px;
     width: 100%;
     padding: 5px 5px;
     line-height: 20px;
@@ -593,8 +606,22 @@ display: flex;
         text-align: center;
         line-height: 40px;
         cursor: pointer;
-        margin: 5px;
+        margin: 8px 40px;
     }
+
+
+
+    .item-checkbox{
+        position: absolute;
+        height: 30px;
+        width: 30px;
+        text-align: center;
+        line-height: 40px;
+        cursor: pointer;
+        margin: 5px;
+
+    }
+
     .item-remove-button:hover{
         background-color: rgb(238, 184, 60,0.8);
         color:#fff
@@ -687,11 +714,20 @@ display: flex;
     }
     .file-remove-button:hover{
         background-color: rgb(238, 184, 60,0.8);
-        color:#fff
-        
+        color:#fff    
     }
     
-
+    .item-remove-button-vendor{
+        position: absolute;
+        height: 30px;
+        width: 30px;
+        background-color: rgba(255, 255, 255, 0.6);
+        border-radius: 50%;
+        text-align: center;
+        line-height: 40px;
+        cursor: pointer;
+        margin: 5px;
+    }
 /* Vendor Details Page End */
 
 .company-name-table{

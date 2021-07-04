@@ -25,13 +25,14 @@ import { Grid, GridColumn } from '@atlaskit/page';
 import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import { StatusAlertService } from 'react-status-alert'
 import 'react-status-alert/dist/status-alert.css'
+import Checkbox from 'react-simple-checkbox';
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
 import ArrowUpCircleIcon from '@atlaskit/icon/glyph/arrow-up-circle';
 import pathIcon from "../../../routing/BreadCrumbIcons"
 import TrashIcon from '@atlaskit/icon/glyph/trash';
-
+import CrossCircleIcon from '@atlaskit/icon/glyph/cross-circle';
 // Components
 
 // Other Packages
@@ -64,6 +65,13 @@ function titleCase(str) {
 }
 
 
+const checkboxTheme = {
+  backgroundColor:'#fff', 
+  borderColor:'#eeb83c', 
+  uncheckedBorderColor:'#243859', 
+  tickColor:'#eeb83c'
+}
+
 
 // api url path
 var url = "/v1/items";
@@ -88,7 +96,6 @@ const emptyModalData = {
 const deleteConfMessage = "Are you sure you want to delete the item? Please note that this will delete the said item from all vendors etc."
 const deleteConfHeader = "Confirm Item Deletion"
 
-
 class ItemCategory extends Component {
   constructor(props) {
     super(props);
@@ -111,7 +118,7 @@ class ItemCategory extends Component {
       searchValue: "",
       sortValue: "",
       orderBy: "asc",
-      
+      selectedList:[],
       // Modal variables
 
       isModalOpen: false,
@@ -250,6 +257,25 @@ class ItemCategory extends Component {
     })
   }
 
+  handleCheckBoxToggle = event => {
+    const dataId = event.currentTarget.dataset.id;
+    var selectedList = this.state.selectedList;
+    const index = selectedList.indexOf(parseInt(dataId));
+    if (index > -1){
+      selectedList.splice(index, 1);
+    }else{
+      selectedList.push(parseInt(dataId))
+    }
+    this.setState({
+      selectedList:selectedList
+    })
+  }
+
+  handleSelectionRemove = () => {
+    this.setState({
+      selectedList:[]
+    })
+  }
 
   handleDelete = () => {
     const dataId = this.state.activeDataId
@@ -264,6 +290,7 @@ class ItemCategory extends Component {
             ...this.state.data.slice(0, index),
             ...this.state.data.slice(index + 1)
           ],
+          // selectedList:[...this.state.selectedList.slice()]
           loaded: true,    
         });
         this.handleConfModalClose();  
@@ -342,15 +369,28 @@ class ItemCategory extends Component {
     }else{
           return (
             <GridColumn key = {key} medium={2} className="item-grid">
-    
                   <div className="item-div">
                     <div className="item-div-internal">
+                      <div className="item-div-actions">
+                        <div className="item-checkbox">
+                          <div data-id={row.id} className="item-checkbox-container" onClick={this.handleCheckBoxToggle}>
+                            <Checkbox
+                              color={checkboxTheme}
+                              size={3}
+                              tickSize={3}
+                              borderThickness={2}
+                              className="checkbox-style-dashboard"
+                              checked={this.state.selectedList.indexOf(row.id) > -1 ? true : false}
+                            />
+                          </div>
+                        </div>
                         <div className="item-remove-button" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
                           <div className="item-remove-icon-container">
                             <TrashIcon size={'medium'} ></TrashIcon>
                           </div>
                         </div>
-                    <Link to={"/adminpanel/items/" + row.id}>
+                      </div>
+                      <Link to={"/adminpanel/items/" + row.id}>
                       <div className="item-image-container">
                         <img alt={row.name} className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
                       </div>
@@ -435,16 +475,39 @@ class ItemCategory extends Component {
         )}
         {!this.props.isVendorAdd && (
         <Grid layout="fluid">
-          <GridColumn medium={10}></GridColumn>
-          <GridColumn medium={2}>
+          <GridColumn medium={9}></GridColumn>
+
+          <GridColumn medium={3}>
+            <div className="button-row">
+              <div className="button-container">
+              <Button isDisabled={this.state.selectedList.length > 0 ? false : true} appearance="warning">
+                Update Status
+              </Button>
+              </div>
             <Link to={'/adminpanel/items/add-item'}>
+              <div className="button-container">
               <Button appearance="warning">
                 Add Item
               </Button>
-          </Link>
+              </div>
+            </Link>
+          </div>
           </GridColumn>
         </Grid>
         )}
+
+        {(!this.props.isVendorAdd && this.state.selectedList.length > 0) && (
+        <Grid layout="fluid">
+            <span className="selected-item-count">
+              Items Selected: {this.state.selectedList.length}
+            </span>
+            <span className="remove-selected-button">
+                <CrossCircleIcon onClick={this.handleSelectionRemove} size={'medium'} ></CrossCircleIcon>
+            </span>
+        </Grid>
+        )}
+        
+
         <Grid layout="fluid">
           <GridColumn medium={2}>
             <div className="field-div">

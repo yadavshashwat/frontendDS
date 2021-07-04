@@ -622,7 +622,7 @@ class ItemCategory extends Component {
                   
                       <div className="item-div-vendor">
                         <div className="item-div-internal-vendor">
-                        <div className="item-remove-button" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
+                        <div className="item-remove-button-vendor" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
                           <div className="item-remove-icon-container">
                             <TrashIcon size={'medium'} ></TrashIcon>
                           </div>
