@@ -26,6 +26,7 @@ import { BreadcrumbsStateless, BreadcrumbsItem } from '@atlaskit/breadcrumbs';
 import { StatusAlertService } from 'react-status-alert'
 import 'react-status-alert/dist/status-alert.css'
 import Checkbox from 'react-simple-checkbox';
+import Form, { Field } from '@atlaskit/form';
 
 //Icons
 import ArrowDownCircleIcon from '@atlaskit/icon/glyph/arrow-down-circle';
@@ -75,6 +76,8 @@ const checkboxTheme = {
 
 // api url path
 var url = "/v1/items";
+var urlitemstatusupdate = "/v1/itemsstatusupdate"
+var urlmergeitems = "/v1/itemsmerge"
 const loaderURL = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/loading-gifs/deadpool.gif"
 // var noImagePath = "https://thedecorshop.s3.ap-south-1.amazonaws.com/web-images/other/nothing_image_new.png";
 var noImagePath = "";
@@ -95,6 +98,8 @@ const emptyModalData = {
 
 const deleteConfMessage = "Are you sure you want to delete the item? Please note that this will delete the said item from all vendors etc."
 const deleteConfHeader = "Confirm Item Deletion"
+const mergeConfHeader = "Confirm Item Merge"
+const statusUpdateHeader = "Update Status of Selected Items"
 
 class ItemCategory extends Component {
   constructor(props) {
@@ -119,6 +124,7 @@ class ItemCategory extends Component {
       sortValue: "",
       orderBy: "asc",
       selectedList:[],
+      selectedItems:[],
       // Modal variables
 
       isModalOpen: false,
@@ -127,6 +133,8 @@ class ItemCategory extends Component {
       modalData: emptyModalData,
       activeDataId: "",
       isConfModalOpen:false,
+      isStatusModalOpen:false,
+      isMergeConfModalOpen:false
     };
   }
 
@@ -257,30 +265,136 @@ class ItemCategory extends Component {
     })
   }
 
+  handleStatusModalOpen = () => {
+    this.setState({
+      isStatusModalOpen:true
+    })
+  }
+
+
+  handleStatusModalClose = () => {
+    this.setState({
+      isStatusModalOpen:false
+    })
+  }
+
+  handleStatusUpdate = data => {
+      var itemslist = (this.state.selectedList).join(",");
+      const payload = {
+        items: itemslist,
+        status: data.status.value,
+      }
+      api(urlitemstatusupdate, 'post-formdata' ,payload).then(response => {
+        const { message, success } = response;
+        StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
+        if (success){
+          this.setState({
+            loaded: true,
+          });
+          this.handleStatusModalClose();  
+        }else{
+          this.setState({
+            loaded:true
+          })
+        }
+      });
+
+  }
+
+  handleMergeConfModalOpen = () =>{
+    this.setState({
+      isMergeConfModalOpen:true
+    })
+  }
+  handleMergeConfModalClose = () =>{
+    this.setState({
+      isMergeConfModalOpen:false
+    })
+  }
+
+  handleMerge = () => {
+    console.log('merge query made')
+    var itemslist = (this.state.selectedList).join(",");
+    const payload = {
+      items: itemslist
+    }
+    
+    function indexgive(inputlist,selectlist, i) {
+      var indexList  = inputlist.findIndex(x => x.id === selectlist[i]);
+      return indexList
+    }
+
+    api(urlmergeitems, 'post-formdata' ,payload).then(response => {
+      const { data, message, success } = response;
+      StatusAlertService.showAlert(message, success ? 'info': 'error',{autoHideTime:1000})
+      if (success){
+        var dataList = this.state.data;
+        var dataListNew = []
+        var index = null
+        for (var i = 0 ; i < this.state.selectedList.length; i++){
+          index = indexgive(dataList,this.state.selectedList, i)
+          dataListNew = [
+            ...dataList.slice(0, index),
+          ...dataList.slice(index + 1)
+          ]
+          dataList = dataListNew
+        }
+        this.setState({
+          loaded: true,
+          selectedList:[],
+          selectedItems:[],
+          data:[...dataList,data]
+        })
+        this.handleMergeConfModalClose();  
+      }else{
+        this.setState({
+          loaded:true
+        })
+      }
+    });
+
+  }
+
+
   handleCheckBoxToggle = event => {
     const dataId = event.currentTarget.dataset.id;
     var selectedList = this.state.selectedList;
+    var selectedItems = this.state.selectedItems;
+    var totalData = this.state.data;
+
     const index = selectedList.indexOf(parseInt(dataId));
+    const indexItem = selectedItems.findIndex(x => x.id === parseInt(dataId));  
+    const indexDataItem = this.state.data.findIndex(x => x.id === parseInt(dataId));
     if (index > -1){
       selectedList.splice(index, 1);
+      selectedItems = [
+        ...selectedItems.slice(0, indexItem),
+        ...selectedItems.slice(indexItem + 1)
+      ]
     }else{
       selectedList.push(parseInt(dataId))
+      selectedItems = [
+        ...selectedItems,
+        totalData[indexDataItem]
+      ]
     }
     this.setState({
-      selectedList:selectedList
+      selectedList:selectedList,
+      selectedItems:selectedItems
     })
   }
 
   handleSelectionRemove = () => {
     this.setState({
-      selectedList:[]
+      selectedList:[],
+      selectedItems:[]
     })
   }
 
   handleDelete = () => {
     const dataId = this.state.activeDataId
     const dataList = this.state.data;
-    const index = dataList.findIndex(x => x.id === dataId);
+    const index = dataList.findIndex(x => x.id === dataId);    
     api(url + '/' + dataId, 'delete',{}).then(response => {
       const { message, success } = response;
       StatusAlertService.showAlert(message,success ? 'info': 'error',{autoHideTime:1000})
@@ -339,6 +453,51 @@ class ItemCategory extends Component {
       cursor:pointer
   `  ;
 
+    let renderSelectedElement = null;
+    if (this.state.loaded === true) {
+      renderSelectedElement = null;
+      renderSelectedElement = this.state.selectedItems.map((row, key) => {
+        return (
+          <GridColumn key = {key} medium={2} className="item-grid">
+                <div className="item-div">
+                  <div className="item-div-internal">
+                    <div className="item-div-actions">
+                      <div className="item-checkbox">
+                        <div data-id={row.id} className="item-checkbox-container" onClick={this.handleCheckBoxToggle}>
+                          <Checkbox
+                            color={checkboxTheme}
+                            size={3}
+                            tickSize={3}
+                            borderThickness={2}
+                            className="checkbox-style-dashboard"
+                            checked={this.state.selectedList.indexOf(row.id) > -1 ? true : false}
+                          />
+                        </div>
+                      </div>
+                      <div className="item-remove-button" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
+                        <div className="item-remove-icon-container">
+                          <TrashIcon size={'medium'} ></TrashIcon>
+                        </div>
+                      </div>
+                    </div>
+                    <Link to={"/adminpanel/items/" + row.id}>
+                    <div className="item-image-container">
+                      <img alt={row.name} className="item-image" src={row.image_details.length > 0 ? row.image_details[row.image_details.findIndex(x => x.is_primary === true) > 0 ? row.image_details.findIndex(x => x.is_primary === true) : 0].path : noImagePath}/>
+                    </div>
+                    <div className="item-name">
+                      {changeCase.titleCase(row.name)} 
+                      <br></br>
+                      {row.category_details && (
+                        <div className="category-pill">{row.category_details ? titleCase(row.category_details.category + " - " + row.category_details.sub_category): ""}</div>
+                      )}
+                    </div>
+                    </Link>
+                  </div>  
+              </div>
+          </GridColumn>
+        );
+      }
+    )} 
 
     let renderBodyElement = null;
     if (this.state.loaded === true) {
@@ -404,7 +563,6 @@ class ItemCategory extends Component {
                       </Link>
                     </div>  
                 </div>
-                
             </GridColumn>
     );
 
@@ -475,12 +633,17 @@ class ItemCategory extends Component {
         )}
         {!this.props.isVendorAdd && (
         <Grid layout="fluid">
-          <GridColumn medium={9}></GridColumn>
+          <GridColumn medium={8}></GridColumn>
 
-          <GridColumn medium={3}>
+          <GridColumn medium={4}>
             <div className="button-row">
               <div className="button-container">
-              <Button isDisabled={this.state.selectedList.length > 0 ? false : true} appearance="warning">
+                <Button onClick={this.handleMergeConfModalOpen} isDisabled={this.state.selectedList.length > 1 ? false : true} appearance="warning">
+                  Merge Items
+                </Button>
+              </div>
+              <div className="button-container">
+              <Button onClick={this.handleStatusModalOpen} isDisabled={this.state.selectedList.length > 0 ? false : true} appearance="warning">
                 Update Status
               </Button>
               </div>
@@ -544,7 +707,7 @@ class ItemCategory extends Component {
               <span className="field-label">Status</span>
               <CheckboxSelect
                 className="checkbox-select"
-                classNamePrefix="sele"
+                classNamePrefix="select"
                 options={this.state.statusOptions}
                 placeholder="Status"
                 onChange={this.handleStatusChange}
@@ -571,8 +734,9 @@ class ItemCategory extends Component {
           </GridColumn>
         </Grid>
         <Grid layout="fluid">
-          {renderBodyElement}  
-        </Grid>            
+          {renderBodyElement} 
+        </Grid>
+        
         <Grid layout="fluid">
           <GridColumn medium={10}>
           {(this.state.loaded && this.state.numPages > 1) && (
@@ -606,6 +770,18 @@ class ItemCategory extends Component {
           </div>
           </GridColumn>
         </Grid>  
+        {this.state.selectedList.length > 0 && (  
+        <div>
+        <hr></hr>   
+          <span><b>Current Selection</b></span>
+        </div>
+        )}     
+        {this.state.selectedList.length > 0 && (  
+            <Grid layout="fluid">
+              
+              {renderSelectedElement}
+            </Grid>
+          )}    
           
         <ModalTransition>
           {this.state.isConfModalOpen && (
@@ -620,6 +796,70 @@ class ItemCategory extends Component {
 
           )}
         </ModalTransition>
+        <ModalTransition>
+          {this.state.isMergeConfModalOpen && (
+            <Modal autoFocus={false}  actions={
+              [
+                { text: 'Confirmed', appearance: 'warning', onClick: this.handleMerge },
+                { text: 'Close', appearance: 'normal', onClick: this.handleMergeConfModalClose },
+              ]
+            } onClose={this.handleMergeConfModalClose} heading={mergeConfHeader}>
+                Are you sure you want to merge the selected items? Once confirmed action cannot be reversed. The merging will follow the following logic:
+                <ul>
+                  <li><b>Name:</b> Name of merged item will take the longest availaible names</li>
+                  <li><b>Description:</b> Description of merged item will take the longest availaible description</li>
+                  <li><b>Dimesions:</b> Dimesions of merged item will take the longest availaible dimesions</li>
+                  <li><b>Status:</b> Status of merged item will take the latest status i.e. if status of one of the items is ready then status would be ready</li>
+                  <li><b>Category:</b> Category of merged item would be first availaible category system finds</li>
+                  <li><b>Selling Price:</b> Selling price would be lowest selected selling price for selected item</li>
+                  <li><b>Images:</b> All images would be merged. Duplicates would be present</li>
+                  <li><b>Vendors:</b> All vendors would be merged. Cost price would be lowest price for the vendor for selected items</li>
+                </ul>
+            </Modal>
+
+          )}
+        </ModalTransition>
+
+        <ModalTransition>
+          {this.state.isStatusModalOpen && (
+            <Modal autoFocus={false}  actions={
+              [
+                { text: 'Close', appearance: 'normal', onClick: this.handleStatusModalClose },
+              ]
+            } onClose={this.handleStatusModalClose} height={300} heading={statusUpdateHeader}>
+
+              <Form onSubmit={this.handleStatusUpdate}>
+                {({ formProps }) => (
+                  <form {...formProps}>
+                    <Grid>
+                      <GridColumn medium={12}>
+                        <Field name="status"
+                              label="Status" 
+                              defaultValue={this.state.statusOptions[0]}
+                              isRequired
+                              >
+                          {({ fieldProps }) => <Select options={this.state.statusOptions} 
+                            {...fieldProps} />}
+                        </Field>
+                      </GridColumn>
+
+                    </Grid>
+                    <Grid>
+                      <GridColumn medium={12}>
+                        <br></br>
+                        <br></br>
+                        <Button type="submit" appearance="warning">
+                          Update
+                      </Button>
+                      </GridColumn>
+                    </Grid>
+                  </form>
+                )}
+              </Form>
+            </Modal>
+          )}
+        </ModalTransition>
+
       </div>
       </div>
     );
