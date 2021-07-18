@@ -280,6 +280,9 @@ class ItemCategory extends Component {
 
   handleStatusUpdate = data => {
       var itemslist = (this.state.selectedList).join(",");
+      this.setState({
+        loaded:false
+      })
       const payload = {
         items: itemslist,
         status: data.status.value,
@@ -315,6 +318,9 @@ class ItemCategory extends Component {
   handleMerge = () => {
     console.log('merge query made')
     var itemslist = (this.state.selectedList).join(",");
+    this.setState({
+      loaded:false
+    })
     const payload = {
       items: itemslist
     }
@@ -826,7 +832,7 @@ class ItemCategory extends Component {
               [
                 { text: 'Close', appearance: 'normal', onClick: this.handleStatusModalClose },
               ]
-            } onClose={this.handleStatusModalClose} height={300} heading={statusUpdateHeader}>
+            } onClose={this.handleStatusModalClose} height={350} heading={statusUpdateHeader}>
 
               <Form onSubmit={this.handleStatusUpdate}>
                 {({ formProps }) => (
