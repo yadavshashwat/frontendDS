@@ -480,11 +480,6 @@ class ItemCategory extends Component {
                           />
                         </div>
                       </div>
-                      <div className="item-remove-button" data-id={row.id} onClick={this.handleConfModalOpen.bind(this)} >
-                        <div className="item-remove-icon-container">
-                          <TrashIcon size={'medium'} ></TrashIcon>
-                        </div>
-                      </div>
                     </div>
                     <Link to={"/adminpanel/items/" + row.id}>
                     <div className="item-image-container">
